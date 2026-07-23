@@ -38,6 +38,9 @@ public class TestSocketServer {
     public void run()throws IOException {
 	ServerSocketChannel serChannel = ServerSocketChannel.open(StandardProtocolFamily.UNIX);
 	UnixDomainSocketAddress socketAddress = UnixDomainSocketAddress.of(path);
+	java.io.File socketFile = new java.io.File(path.toString());
+	socketFile.setWritable(true, false); // false означает "для всех", а не только для владельца
+	socketFile.setReadable(true, false);
 	serChannel.bind(socketAddress);
 	console.printf("Waiting ...");
 	SocketChannel channel;
@@ -65,7 +68,7 @@ public class TestSocketServer {
 	    long threadId = Thread.currentThread().getId();
 
 	    
-	    System.out.println("Task running on Thread ID: " + threadId);
+	    //System.out.println("Task running on Thread ID: " + threadId);
 	    try {
 		while ((numBytes = channel.read(inBuf))  != -1) {
 		    byte[] bytes = new byte[numBytes];
@@ -73,25 +76,26 @@ public class TestSocketServer {
 		    inBuf.get(bytes);
 		    outputStream.writeBytes(bytes);
 		    String message = new String(bytes); 
-		    System.out.printf("[Incoming] %s\n", message);
+		    //		    System.out.printf("[Incoming] %s\n", message);
 		    inBuf.clear();
 		    var thisIsTheEnd = SimpleHttpReqParser.isFinished(outputStream);
 		    if(thisIsTheEnd != null){
-			console.printf("Recieved end of http req, breaking ..\n");
+			//console.printf("Recieved end of http req, breaking ..\n");
 			var okResp = SimpleHttpReqParser.isOK(thisIsTheEnd);
 			for( String h:thisIsTheEnd){
-			    console.printf("%s\n", h);
+			    //console.printf("%s\n", h);
 			}
 			channel.write(ByteBuffer.wrap(okResp));
-			console.printf("this string will be output %s \n", new String(okResp));
+			//console.printf("this string will be output %s \n", new String(okResp));
 			channel.close();
 			break;
 		    }else{
-			console.printf("No end of req yet ..\n");
+			//console.printf("No end of req yet ..\n");
+			break;
 		    }
 		    
 		}
-		console.printf("Leaving the cycle\n");
+		//console.printf("Leaving the cycle\n");
 	    }catch(IOException exception){
 		
 	    }

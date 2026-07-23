@@ -46,17 +46,16 @@ public class SimpleHttpReqParser{
 	}
 	int length = builder.toString().getBytes().length;
 	String body = builder.toString();
-	String content = String.format("Content-Length: %d",length);
+	String content = String.format("Content-Length: %d\r\n",length);
 	String[] okResp = {"HTTP/1.1 200 OK\r\n",
-			   "Content-Type: text/html; charset=UTF-8",
+			   "Content-Type: text/html; charset=UTF-8\r\n",
 			   content,
-			   "\r\n\r\n",
+			   "\r\n",
 			   body};
 
 	builder = new StringBuilder();
 	for (String str:okResp){
 	    builder.append(str);
-	    builder.append(" ");
 	}
 	return builder.toString().getBytes();
     }
