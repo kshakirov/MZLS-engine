@@ -23,4 +23,54 @@
 The core web server architecture uses Blocking I/O (BIO) over Unix Domain Sockets (UDS) behind an Nginx reverse proxy. 
 Empirical stress testing (Francis Bacon method) on 8-year-old HP hardware defined the system's operational threshold. High-density traffic ($12$ threads / $100$ connections) causes severe OS context switching, whereas balanced traffic ($6$ threads / $40$ connections) delivers a stable $23,466$ RPS with a mathematical zero error rate ($0\%$ Non-2xx).
 
+
+
+
+\section*{ADR-0002: Инкрементальный мониторинг латентности по алгоритму Велфорда / Incremental Latency Monitoring via Welford's Algorithm}
+\textbf{Status:} Proposed \\
+
+\subsection*{RU: Контекст и Математическое Обоснование}
+Для сбора метрик задержки (latency) веб-сервера МЗ под нагрузкой недопустимо использовать массивы данных или блокирующие примитивы синхронизации, так как это вызывает аллокационный кризис в Heap и деградацию кэша процессора. 
+
+Расчет среднего ($\mu$) и дисперсии ($\sigma^2$) выполняется инкрементально за строгое время $O(1)$ по формулам Велфорда:
+$$\mu_n = \mu_{n-1} + \frac{x_n - \mu_{n-1}}{n}$$
+$$M_{2,n} = M_{2,n-1} + (x_n - \mu_{n-1})(x_n - \mu_n)$$
+$$\sigma^2 = \frac{M_{2,n}}{n}$$
+
+Для защиты от ложного разделения кэш-линий (False Sharing) в архитектуре x86 процессора HP, класс \texttt{WelfordState} проектируется с жестким выравниванием (padding) по границе $64$ байт с помощью пустых полей-заполнителей типа \texttt{long}. Потоки пула пишут метрики асинхронно в свои изолированные локальные состояния без блокировок, а фоновый поток-наблюдатель производит консолидацию данных (Reduce).
+
+\subsection*{EN: Context \& Mathematical Specification}
+To collect latency metrics under high load, capturing samples into arrays or using blocking synchronization primitives is prohibited due to memory allocation overhead in the Heap and CPU cache degradation.
+
+The running mean ($\mu$) and variance ($\sigma^2$) are calculated incrementally in $O(1)$ time using Welford's equations as stated above. To prevent False Sharing across the x86 CPU cache lines on the host HP hardware, the \texttt{WelfordState} structure enforces a strict $64$-byte cache-line alignment using dummy \texttt{long} padding fields. Worker threads update their isolated thread-local states lock-free, while a background observer thread executes a periodic asynchronous Reduce operation.
+
+
+\section*{ADR-0003: Детерминированный конечный автомат парсера HTTP / Deterministic Finite Automaton for Zero-Allocation HTTP Parsing}
+\textbf{Status:} Proposed \\
+
+\subsection*{RU: Математическая модель Автомата}
+Парсер HTTP-заголовков проектируется как строго детерминированный конечный автомат (ДКА), работающий по алфавиту ASCII-байтов за время $O(n)$ и с памятью $O(1)$. Память в Heap не аллоцируется. На входе автомат принимает сырой буфер чтения. 
+
+Множество состояний автомата $S = \{ \text{START}, \text{METHOD}, \text{URI}, \text{VERSION}, \text{H\_START}, \text{H\_NAME}, \text{H\_VALUE}, \text{FINISHED} \}$.
+Таблица переходов по критическим триггерам (байтам):
+\begin{itemize}
+    \item $\text{START} \xrightarrow{\text{ASCII char}} \text{METHOD}$
+    \item $\text{METHOD} \xrightarrow{\text{0x20 (Space)}} \text{URI}$ [Фиксация координат метода]
+    \item $\text{URI} \xrightarrow{\text{0x20 (Space)}} \text{VERSION}$ [Фиксация координат URI]
+    \item $\text{VERSION} \xrightarrow{\text{0x0A (\textbackslash n)}} \text{H\_START}$
+    \item $\text{H\_START} \xrightarrow{\text{0x0D (\textbackslash r)}} \text{проверка на 0x0A} \rightarrow \text{FINISHED}$ [Конец заголовков HTTP]
+    \item $\text{H\_START} \xrightarrow{\text{ASCII char}} \text{H\_NAME}$
+    \item $\text{H\_NAME} \xrightarrow{\text{0x3A (:)}} \text{H\_VALUE}$
+    \item $\text{H\_VALUE} \xrightarrow{\text{0x0A (\textbackslash n)}} \text{H\_START}$
+\end{itemize}
+
+Выходом автомата является структура метаданных (только примитивы \texttt{int}), хранящая исключительно \texttt{offset} и \texttt{length} для каждого токена относительно исходного буфера сокета.
+
+\subsection*{EN: DFA Formal Specification}
+The HTTP header parser is designed as a strict Deterministic Finite Automaton (DFA) operating over the ASCII byte alphabet with $O(n)$ time complexity and $O(1)$ space complexity. Zero memory is allocated in the Java Heap.
+
+The automaton keeps track of token boundaries using integer pairs (\texttt{offset} and \texttt{length}) referencing the underlying raw socket buffer. The parser halts execution immediately upon reaching the \text{FINISHED} state, preventing any lookahead or reading into the request HTTP body payload.
+
+
+
 \end{document}
