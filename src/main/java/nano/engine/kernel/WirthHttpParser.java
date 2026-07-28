@@ -2,7 +2,10 @@ package nano.engine.kernel;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
-
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Stream;
+import java.nio.ByteBuffer;
 
 public class WirthHttpParser{
     public enum STATUS {
@@ -31,9 +34,10 @@ public class WirthHttpParser{
     
     public void  parse(ByteArrayOutputStream stream){
 	var payload = stream.toByteArray();
+	Map<String, String> httpHeader= new HashMap<String, String>();
+     
 	var status = STATUS.REQ_START;
 	//	var current_byte = 0;
-	var current_word = new byte[4];
 	for (int i=0; i < payload.length; i++){
 	    //  current_byte = payload[i];
 	    
@@ -42,22 +46,21 @@ public class WirthHttpParser{
 		//no spaces allowed here must be POST,GET and so on
 		//jump to 
 		status = STATUS.REQ_METHOD;
-		current_word[i] = payload[i];
 		
 	    };
 		break;
 	    case STATUS.REQ_METHOD: {
-		if(current_word.length < 3){
+		if(payload.length < 3){
 		    status = STATUS.REQ_METHOD;
-		    current_word[i] = payload[i];
 		    break;
 		}
-		if(current_word.length==3){
-		    var method = isGetOrPut(current_word);
+		if(payload.length==3){
+		    var method = isGetOrPut(payload);
 		    if(method!=null){
 			//do something
+			httpHeader.put("method", sliceByteArray(0,3,payload ));
 		    }else {
-			//other 
+			break;
 		    }
 			
 		}
@@ -88,14 +91,23 @@ public class WirthHttpParser{
 	}
 	
     }
-    private METHODS isGetOrPut(byte[] word){
-	if(Arrays.equals(word, METHODS.GET.bValue())){
+    private METHODS isGetOrPut(byte[] payload){
+	//we know exactly the possible length of method
+	int methodLength = 3;
+	ByteBuffer sliceBuffer = ByteBuffer.wrap(payload, 0, methodLength).slice();
+	
+	if(Arrays.equals(sliceBuffer.array(), METHODS.GET.bValue())){
 	    return METHODS.GET;
 	}
-	else if(Arrays.equals(word, METHODS.PUT.bValue())){
+	else if(Arrays.equals(sliceBuffer.array(), METHODS.PUT.bValue())){
 	    return METHODS.PUT;
 	}
 	return null;
+    }
+
+    private String sliceByteArray(int start, int end, byte[] payload){
+	ByteBuffer sliceBuffer = ByteBuffer.wrap(payload, start, end).slice();
+	return sliceBuffer.toString();
     }
 
 }
