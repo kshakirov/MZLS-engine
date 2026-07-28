@@ -35,70 +35,79 @@ public class WirthHttpParser{
     public void  parse(ByteArrayOutputStream stream){
 	var payload = stream.toByteArray();
 	var status = STATUS.REQ_START;
-	var start =0;
+	var methodStart=0;
+	var methodEnd=0;
+	var uriStart=0;
 	var ddos = true;
 	var offsets = new int[128];// 127 method, uri,headers should be enough 
 	for (int i=0; i < payload.length; i++){
 	    //  current_byte = payload[i];
-	    if(payload[i]==0x20){
+	
 		
-		switch(status){
-		case STATUS.REQ_START: {
-		    //no spaces allowed here must be POST,GET and so on
-		    //jump to 
-		    status = STATUS.REQ_METHOD;
-		    ddos = false;
+	    switch(status){
+	    case STATUS.REQ_START: {
+		//no spaces allowed here must be POST,GET and so on
+		//jump to 
+		status = STATUS.REQ_METHOD;
+		//ddos = false;
 		    
-		};
-		    break;
-		case STATUS.REQ_METHOD: {
-		    if(i==3){
-			var method = isGetOrPut(payload);
-			if(method){
-			    //do something
-			    start = i;
-			    offsets[0] = i; //first offset for method
-			    
-			}else {
-			    break;
-			}
-		    
+	    };
+		break;
+	    case STATUS.REQ_METHOD: {
+		if(i==0 && i !=0x20){
+		    methodStart = i;
+		}
+		if(i==3){
+		    var method = isGetOrPut(payload);
+		    if(method){
+			//do something
+			//methodEnd = i;
+			offsets[0] = methodStart; //first offset for method
+			ddos =false;    
+		    }else if(i==4) {
+			
+		    }else if(i==5){
+
+		    }
+		    else if(i==6){
+			
+		    }else if(i==7){
+
+		    }else if(i> 7){
+			//something wrong 
 		    }
 		    
 		    
 		}
+		    
+		    
+	    }
 	
 		
-		case STATUS.REQ_URI: {
-		    break;
-		}
-		case STATUS.REQ_VERSION: {
-		    break;
-		
-		}
-		case STATUS.HEADER_START: {
-		    break;
-		
-		}
-		case STATUS.HEADER_NAME: {
-		    break;
-		
-		}
-		case STATUS.HEADER_VALUE: {
-		    break;
-		
-		}
-		case STATUS.FINISHED: {
-		    break;
-		}
-		}
-	    }else if(i > 8 && ddos){
-		//just return for the moment later we'll see
-		return ;
-	    }else{
-		//do something just skip
+	    case STATUS.REQ_URI: {
+		break;
+	    }
+	    case STATUS.REQ_VERSION: {
+		break;
 		
 	    }
+	    case STATUS.HEADER_START: {
+		break;
+		
+	    }
+	    case STATUS.HEADER_NAME: {
+		break;
+		
+	    }
+	    case STATUS.HEADER_VALUE: {
+		break;
+		
+	    }
+	    case STATUS.FINISHED: {
+		break;
+	    }
+	    }
+	
 
 	       
 	}
