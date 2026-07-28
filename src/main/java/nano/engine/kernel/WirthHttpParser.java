@@ -34,76 +34,101 @@ public class WirthHttpParser{
     
     public void  parse(ByteArrayOutputStream stream){
 	var payload = stream.toByteArray();
-	Map<String, String> httpHeader= new HashMap<String, String>();
-     
 	var status = STATUS.REQ_START;
-	//	var current_byte = 0;
+	var start =0;
+	var ddos = true;
+	var offsets = new int[128];// 127 method, uri,headers should be enough 
 	for (int i=0; i < payload.length; i++){
 	    //  current_byte = payload[i];
-	    
-	    switch(status){
-	    case STATUS.REQ_START: {
-		//no spaces allowed here must be POST,GET and so on
-		//jump to 
-		status = STATUS.REQ_METHOD;
+	    if(payload[i]==0x20){
 		
-	    };
-		break;
-	    case STATUS.REQ_METHOD: {
-		if(payload.length < 3){
+		switch(status){
+		case STATUS.REQ_START: {
+		    //no spaces allowed here must be POST,GET and so on
+		    //jump to 
 		    status = STATUS.REQ_METHOD;
+		    ddos = false;
+		    
+		};
+		    break;
+		case STATUS.REQ_METHOD: {
+		    if(i==3){
+			var method = isGetOrPut(payload);
+			if(method){
+			    //do something
+			    start = i;
+			    offsets[0] = i; //first offset for method
+			    
+			}else {
+			    break;
+			}
+		    
+		    }
+		    
+		    
+		}
+	
+		
+		case STATUS.REQ_URI: {
 		    break;
 		}
-		if(payload.length==3){
-		    var method = isGetOrPut(payload);
-		    if(method!=null){
-			//do something
-			httpHeader.put("method", sliceByteArray(0,3,payload ));
-		    }else {
-			break;
-		    }
-			
+		case STATUS.REQ_VERSION: {
+		    break;
+		
 		}
+		case STATUS.HEADER_START: {
+		    break;
 		
-	    };
-	    case STATUS.REQ_URI: {
+		}
+		case STATUS.HEADER_NAME: {
+		    break;
 		
-	    };
-	    case STATUS.REQ_VERSION: {
+		}
+		case STATUS.HEADER_VALUE: {
+		    break;
 		
-	    };
-	    case STATUS.HEADER_START: {
+		}
+		case STATUS.FINISHED: {
+		    break;
+		}
+		}
+	    }else if(i > 8 && ddos){
+		//just return for the moment later we'll see
+		return ;
+	    }else{
+		//do something just skip
 		
-	    };
-	    case STATUS.HEADER_NAME: {
-		
-	    };
-	    case STATUS.HEADER_VALUE: {
-		
-	    };
-	    case STATUS.FINISHED: {
-		
-	    };
-		
-	       
 	    }
+
+	       
+	}
 	    
-	}
+	
 	
     }
-    private METHODS isGetOrPut(byte[] payload){
+    private boolean isGetOrPut(byte[] payload){
 	//we know exactly the possible length of method
-	int methodLength = 3;
-	ByteBuffer sliceBuffer = ByteBuffer.wrap(payload, 0, methodLength).slice();
-	
-	if(Arrays.equals(sliceBuffer.array(), METHODS.GET.bValue())){
-	    return METHODS.GET;
+	if(fullMatch(METHODS.GET.bValue(),payload, 0)){
+	    return true;
 	}
-	else if(Arrays.equals(sliceBuffer.array(), METHODS.PUT.bValue())){
-	    return METHODS.PUT;
+	if(fullMatch(METHODS.PUT.bValue(),payload, 0)){
+	    return true;
 	}
-	return null;
+
+		
+	return false;
     }
+
+    private boolean fullMatch(byte[] template, byte[] candidate, int candiadateOffset){
+	var length = template.length;
+	for (int i =0;i< length;i++){
+	    if(template[i]==candidate[candiadateOffset + i]){
+		return false;
+	    }
+	}
+	return true;
+    }
+    
 
     private String sliceByteArray(int start, int end, byte[] payload){
 	ByteBuffer sliceBuffer = ByteBuffer.wrap(payload, start, end).slice();
