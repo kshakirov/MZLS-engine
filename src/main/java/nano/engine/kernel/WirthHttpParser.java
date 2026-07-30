@@ -16,7 +16,9 @@ public class WirthHttpParser{
 	HEADER_START(4),
 	HEADER_NAME(5),
 	HEADER_VALUE(6),
-	FINISHED   (7);
+	FINISHED   (7),
+	REQ_VERSION_START(9),
+	REQ_URI_START(8);
 	STATUS(int value) {this.value=value;};
 	private final int value;
 	public int value() {return value;}
@@ -32,12 +34,16 @@ public class WirthHttpParser{
 	public byte[] bValue() {return value.getBytes();}
     }
     
-    public void  parse(ByteArrayOutputStream stream){
-	var payload = stream.toByteArray();
+    public int[]  parse(byte[] payload){
+	//	var payload = stream.toByteArray();
 	var status = STATUS.REQ_START;
+	var console = System.console();
 	var methodStart=0;
 	var methodEnd=0;
 	var uriStart=0;
+	var uriEnd =0;
+	var versionStart =0;
+	var versionEnd=0;
 	var ddos = true;
 	var offsets = new int[128];// 127 method, uri,headers should be enough 
 	for (int i=0; i < payload.length; i++){
@@ -49,21 +55,27 @@ public class WirthHttpParser{
 		//no spaces allowed here must be POST,GET and so on
 		//jump to 
 		status = STATUS.REQ_METHOD;
-		//ddos = false;
+		methodStart = i;
+
 		    
 	    };
 		break;
 	    case STATUS.REQ_METHOD: {
+		//console.printf("REQ_METHOD: [%c]\n",payload[i]);
 		if(i==0 && i !=0x20){
-		    methodStart = i;
+		   
 		}
 		if(i==3){
 		    var method = isGetOrPut(payload);
 		    if(method){
 			//do something
 			//methodEnd = i;
+			console.printf("STATUS.REQ_METHOD FOUND\n");
 			offsets[0] = methodStart; //first offset for method
-			ddos =false;    
+			methodEnd= i;
+			offsets[1] = methodEnd;
+			ddos =false;
+			status = STATUS.REQ_URI;
 		    }else if(i==4) {
 			
 		    }else if(i==5){
@@ -83,10 +95,37 @@ public class WirthHttpParser{
 		    
 	    }
 	
+	    case STATUS.REQ_URI_START: {
+		if(payload[i]==0x20){
+		    console.printf("STATUS.REQ_URI_START FOUND\n");
+		    status = STATUS.REQ_URI;
+		    uriStart = i + 1;
+		    offsets[2] = uriStart;
+		}
 		
+	    }
 	    case STATUS.REQ_URI: {
+		if(payload[i]!=0x20){
+		    uriEnd = i;
+		    offsets[3]= uriEnd;
+		    
+		}else{
+		    console.printf("STATUS.REQ_URI FOUND\n");
+		    status = STATUS.REQ_VERSION_START;
+		}
 		break;
 	    }
+		
+	    case STATUS.REQ_VERSION_START: {
+		if(payload[i]==0x20){
+		    console.printf("STATUS.REQ_VERSOIN_START FOUND");
+		    status = STATUS.REQ_VERSION;
+		    versionStart = i + 1;
+		}
+		break;
+		
+	    }
+
 	    case STATUS.REQ_VERSION: {
 		break;
 		
@@ -112,7 +151,7 @@ public class WirthHttpParser{
 	       
 	}
 	    
-	
+	return offsets;
 	
     }
     private boolean isGetOrPut(byte[] payload){
@@ -131,7 +170,7 @@ public class WirthHttpParser{
     private boolean fullMatch(byte[] template, byte[] candidate, int candiadateOffset){
 	var length = template.length;
 	for (int i =0;i< length;i++){
-	    if(template[i]==candidate[candiadateOffset + i]){
+	    if(template[i]!=candidate[candiadateOffset + i]){
 		return false;
 	    }
 	}
