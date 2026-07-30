@@ -17,7 +17,7 @@ public class WirthHttpParser{
 	HEADER_NAME(5),
 	HEADER_VALUE(6),
 	FINISHED   (7),
-	REQ_VERSION_START(9),
+
 	REQ_URI_START(8);
 	STATUS(int value) {this.value=value;};
 	private final int value;
@@ -102,6 +102,7 @@ public class WirthHttpParser{
 		    uriStart = i + 1;
 		    offsets[2] = uriStart;
 		}
+		break;
 		
 	    }
 	    case STATUS.REQ_URI: {
@@ -111,25 +112,21 @@ public class WirthHttpParser{
 		    
 		}else{
 		    console.printf("STATUS.REQ_URI FOUND\n");
-		    status = STATUS.REQ_VERSION_START;
+		    status = STATUS.REQ_VERSION;
 		}
 		break;
 	    }
 		
-	    case STATUS.REQ_VERSION_START: {
+	    case STATUS.REQ_VERSION: {
 		if(payload[i]==0x20){
-		    console.printf("STATUS.REQ_VERSOIN_START FOUND");
-		    status = STATUS.REQ_VERSION;
+		    console.printf("STATUS.REQ_VERSOIN FOUND");
+		    status = STATUS.HEADER_START;
 		    versionStart = i + 1;
 		}
 		break;
 		
 	    }
 
-	    case STATUS.REQ_VERSION: {
-		break;
-		
-	    }
 	    case STATUS.HEADER_START: {
 		break;
 		
