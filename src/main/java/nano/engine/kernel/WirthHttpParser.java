@@ -44,6 +44,7 @@ public class WirthHttpParser{
 	var uriEnd =0;
 	var versionStart =0;
 	var versionEnd=0;
+	var nextOffsetIdx =0;
 	var ddos = true;
 
 	
@@ -130,6 +131,7 @@ public class WirthHttpParser{
 		}else{
 		    console.printf("STATUS.CHECK_NEXT_LINE: neither carriage return no newline found, this means there are headers \n");
 		    status = STATUS.HEADER_START;
+		    
 		}
 		break;
 	    }
@@ -137,6 +139,8 @@ public class WirthHttpParser{
 		if(payload[i]==0x0A){
 		    console.printf("STATUS.HEADER_START FOUND\n");
 		    status = STATUS.HEADER_NAME;
+		    nextOffsetIdx = 6;
+		    offsets[nextOffsetIdx]= i;
 		    
 
 
