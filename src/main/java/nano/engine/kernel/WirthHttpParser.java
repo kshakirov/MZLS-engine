@@ -176,9 +176,9 @@ public class WirthHttpParser{
 		
 	    }
 	    case STATUS.FINISHED: {
-		console.printf("STATUS.FINISH: returning\n");
-		//break;
-		return offsets;
+		console.printf("STATUS.FINISH: reading \n");
+		break;
+		//return offsets;
 	    }
 	    }
 	
