@@ -113,7 +113,7 @@ public class WirthHttpParser{
 		    versionEnd = i;
 		}else if(payload[i]==0x0D){
 		     console.printf("STATUS.REQ_VERSOIN FOUND\n");
-		     offsets[5]=versionEnd -2;
+		     offsets[5]=versionEnd - 1;
 		     status = STATUS.CHECK_NEXT_LINE;
 		};
 		break;
@@ -137,6 +137,7 @@ public class WirthHttpParser{
 		if(payload[i]==0x0A){
 		    console.printf("STATUS.HEADER_START FOUND\n");
 		    status = STATUS.HEADER_NAME;
+		    
 
 
 		}
