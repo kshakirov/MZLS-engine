@@ -23,6 +23,21 @@ public  class TestWirthHttpParser{
 			       "Connection: keep-alive\r\n" +
 			       "\r\n"
 			       ).getBytes(java.nio.charset.StandardCharsets.UTF_8);
+    public static void dumpOffsets(byte[] payload, int[] offsets) {
+    String[] names = {"METHOD", "URI", "VERSION"};
+    
+    for (int j = 0; j < names.length; j++) {
+        int start = offsets[j * 2];
+        int end = offsets[j * 2 + 1];
+        int length = end - start + 1; // +1, так как энд-индекс у тебя включительный
+        
+        System.out.print(names[j] + ": [");
+        // Печатаем сырые байты прямо в консоль как символы
+        System.out.write(payload, start, length);
+        System.out.println("]");
+    }
+}
+
 
     public static void main(String[] args){
 	var console= System.console();
@@ -30,21 +45,7 @@ public  class TestWirthHttpParser{
 	var parser = new WirthHttpParser();
 	//	var result = parser.parse(standardGet);
 	var result = parser.parse(shortGet);
-	console.printf("%c, %c\n",result[0],result[1]);
-	int prev = 0;
-	int current =0;
-	for(int i =0; i < result.length;i++){
-	    current = result[i];
-	    //console.printf("start %d end %d\n", prev, current);
-	    // if(current > prev){
-	    // 	for(int j= prev; j <= current; j++){
-	    // 	    console.printf("%c",standardGet[result[j]]);
-	    // 	}
-	    // 	prev= current;
-	    // 	console.printf("\n");
-	    // };
-	    
-	}
+	dumpOffsets(shortGet, result);
     
     }
      

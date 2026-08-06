@@ -113,7 +113,7 @@ public class WirthHttpParser{
 		    versionEnd = i;
 		}else if(payload[i]==0x0D){
 		     console.printf("STATUS.REQ_VERSOIN FOUND\n");
-		     offsets[5]=versionEnd - 1;
+		     offsets[5]=versionEnd;
 		     status = STATUS.CHECK_NEXT_LINE;
 		};
 		break;
