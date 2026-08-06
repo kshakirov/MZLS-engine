@@ -10,7 +10,7 @@ public  class TestWirthHttpParser{
 					 ).getBytes(java.nio.charset.StandardCharsets.UTF_8);
 
 
-    private byte[] shortGet = (
+    private static byte[] shortGet = (
 			       "GET / HTTP/1.0\r\n" +
 			       "\r\n"
 			       ).getBytes(java.nio.charset.StandardCharsets.UTF_8);
@@ -28,13 +28,14 @@ public  class TestWirthHttpParser{
 	var console= System.console();
 	System.out.println("Hello");
 	var parser = new WirthHttpParser();
-	var result = parser.parse(standardGet);
+	//	var result = parser.parse(standardGet);
+	var result = parser.parse(shortGet);
 	console.printf("%c, %c\n",result[0],result[1]);
 	int prev = 0;
 	int current =0;
 	for(int i =0; i < result.length;i++){
 	    current = result[i];
-	    console.printf("start %d end %d\n", prev, current);
+	    //console.printf("start %d end %d\n", prev, current);
 	    // if(current > prev){
 	    // 	for(int j= prev; j <= current; j++){
 	    // 	    console.printf("%c",standardGet[result[j]]);
