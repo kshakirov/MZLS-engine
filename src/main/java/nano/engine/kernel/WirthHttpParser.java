@@ -47,28 +47,19 @@ public class WirthHttpParser{
 	var ddos = true;
 	var header_name_start_ptr = 0;
 	var header_name_end_ptr = 0;
-	var header_value_start_ptr = 0;
+	var header_value_start_ptr = 0; 
 	var header_value_end_ptr = 0;
 	
-	var offsets = new int[128];// 127 method, uri,headers should be enough 
+	var offsets = new int[32];// 127 method, uri,headers should be enough 
 	for (int i=0; i < payload.length; i++){
-	    //  current_byte = payload[i];
-	
-		
 	    switch(status){
 	    case STATUS.REQ_START: {
-		//no spaces allowed here must be POST,GET and so on
-		//jump to 
 		status = STATUS.REQ_METHOD;
 		methodStart = i;
-
-		    
 	    };
 		break;
 	    case STATUS.REQ_METHOD: {
-		//console.printf("REQ_METHOD: [%c]\n",payload[i]);
 		if(i==0 && i !=0x20){
-		   
 		}
 		if(i==3){
 		    var method = isGetOrPut(payload);
@@ -77,7 +68,7 @@ public class WirthHttpParser{
 			//methodEnd = i;
 			console.printf("STATUS.REQ_METHOD FOUND\n");
 			offsets[0] = methodStart; //first offset for method
-			methodEnd= i;
+			methodEnd= i - 1;
 			offsets[1] = methodEnd;
 			ddos =false;
 			status = STATUS.REQ_URI;
@@ -130,8 +121,12 @@ public class WirthHttpParser{
 		    versionEnd = i;
 		}else if(payload[i]==0x0D){
 		     console.printf("STATUS.REQ_VERSOIN FOUND\n");
-		     offsets[5]=versionEnd;
+		     offsets[5]=versionEnd -2;
 		     status = STATUS.HEADER_START;
+		     header_name_start_ptr = 5;
+		     header_name_end_ptr = 6;
+		     header_value_start_ptr = 7;
+		     header_value_end_ptr = 8;
 		};
 		break;
 		
@@ -141,7 +136,9 @@ public class WirthHttpParser{
 		if(payload[i]==0x0A){
 		    console.printf("STATUS.HEADER_START FOUND\n");
 		    status = STATUS.HEADER_NAME;
-		    header_name_start_ptr = i +1;
+
+		    offsets[header_name_start_ptr] = i;
+		    header_name_start_ptr += 1;
 		}
 		break;
 		
@@ -150,10 +147,12 @@ public class WirthHttpParser{
 		if(payload[i]!=0x3A){
 
 		    //status = STATUS.HEADER_NAME;
-		    header_name_end_ptr = i;
+		    offsets[header_name_end_ptr] = i;
 		}else{
 		    console.printf("STATUS.HEADER_NAME FOUND  \n");
-		    header_value_start_ptr = i + 1;
+		    header_name_end_ptr += 1;
+		    offsets[header_value_start_ptr] = i + 1;
+		    header_value_start_ptr += 1;
 		    status= STATUS.HEADER_VALUE;
 		   
 		}   
@@ -163,9 +162,10 @@ public class WirthHttpParser{
 	    }
 	    case STATUS.HEADER_VALUE: {
 		if(payload[i]!=0x0A) {
-		    header_value_end_ptr = i;
+		    offsets[header_value_end_ptr] = i;
 		}else{
 		    console.printf("STATUS.HEADER_VALUE FOUND\n");
+		    header_value_end_ptr += 1;
 		    status = STATUS.HEADER_NAME;
 
 		}
