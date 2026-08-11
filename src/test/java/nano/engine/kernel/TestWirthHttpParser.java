@@ -11,7 +11,7 @@ public  class TestWirthHttpParser{
 
 
     private static byte[] shortGet = (
-			       "GET / HTTP/1.0\r\n" +
+			       "GET /tell HTTP/1.0\r\n" +
 			       "\r\n"
 			       ).getBytes(java.nio.charset.StandardCharsets.UTF_8);
     private byte[] heavyGet = (
@@ -31,7 +31,7 @@ public  class TestWirthHttpParser{
         int end = offsets[j * 2 + 1];
         int length = end - start + 1; // +1, так как энд-индекс у тебя включительный
         
-        System.out.print(names[j] + ": [");
+        System.out.print(start + "__ " + end + "__ " + j+ " _" + names[j] + ": [");
         // Печатаем сырые байты прямо в консоль как символы
         System.out.write(payload, start, length);
         System.out.println("]");

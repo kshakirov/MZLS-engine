@@ -64,7 +64,7 @@ public class WirthHttpParser{
 		    if(method){
 			console.printf("STATUS.REQ_METHOD FOUND\n");
 			offsets[0] = methodStart; //first offset for method
-			methodEnd= i - 1;
+			methodEnd= i ;
 			offsets[1] = methodEnd;
 			ddos =false;
 			status = STATUS.REQ_URI;
@@ -110,9 +110,10 @@ public class WirthHttpParser{
 		
 	    case STATUS.REQ_VERSION: {
 		if(payload[i]==0x0D){
+	
+		    versionEnd = i - 1;
 		    offsets[5]=versionEnd;
-		    versionEnd = i;
-		    console.printf("STATUS.REQ_VERSOIN FOUND\n");
+		    console.printf("STATUS.REQ_VERSOIN FOUND %d %d\n",versionStart,  versionEnd);
 		    status = STATUS.CHECK_NEXT_LINE;
 		}
 		break;
