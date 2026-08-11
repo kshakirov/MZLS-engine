@@ -113,6 +113,7 @@ public class WirthHttpParser{
 	
 		    versionEnd = i - 1;
 		    offsets[5]=versionEnd;
+		    nextOffsetIdx = 6;
 		    console.printf("STATUS.REQ_VERSOIN FOUND %d %d\n",versionStart,  versionEnd);
 		    status = STATUS.CHECK_NEXT_LINE;
 		}
@@ -122,13 +123,13 @@ public class WirthHttpParser{
 		
 	    case STATUS.CHECK_NEXT_LINE: {
 		if(payload[i]==0x0A){
-		    console.printf("STATUS.CHECK_NEXT_LINE: newline  found\n");
+		    console.printf("STATUS.CHECK_NEXT_LINE: newline  found %d\n", i);
 		    status = STATUS.CHECK_NEXT_LINE;
 		}else if(payload[i]==0x0D){
 		    console.printf("STATUS.CHECK_NEXT_LINE: carriage return found, this means the edn of the request, quitting ...\n");
 		    status = STATUS.FINISHED;
 		}else{
-		    console.printf("STATUS.CHECK_NEXT_LINE: neither carriage return no newline found, this means there are headers \n");
+		    console.printf("STATUS.CHECK_NEXT_LINE: neither carriage return no newline found, this means there are headers %d %d \n", i, payload[i]);
 		    status = STATUS.HEADER_START;
 		    
 		}
@@ -136,10 +137,10 @@ public class WirthHttpParser{
 	    }
 	    case STATUS.HEADER_START: {
 		if(payload[i]==0x0A){
-		    console.printf("STATUS.HEADER_START FOUND\n");
+		    console.printf("STATUS.HEADER_START FOUND %d\n", i);
 		    status = STATUS.HEADER_NAME;
-		    nextOffsetIdx = 6;
 		    offsets[nextOffsetIdx]= i;
+		    nextOffsetIdx += 1;
 		    
 
 
@@ -150,12 +151,13 @@ public class WirthHttpParser{
 	    case STATUS.HEADER_NAME: {
 		if(payload[i]!=0x3A){
 
-		    //status = STATUS.HEADER_NAME;
+		    status = STATUS.HEADER_NAME;
+		    offsets[nextOffsetIdx] = i;
 
 		}else{
-		    console.printf("STATUS.HEADER_NAME FOUND  \n");
+		    console.printf("STATUS.HEADER_NAME FOUND next is %d \n", nextOffsetIdx);
 
-
+		    nextOffsetIdx += 1;
 		    status= STATUS.HEADER_VALUE;
 		   
 		}   
@@ -165,11 +167,14 @@ public class WirthHttpParser{
 	    }
 	    case STATUS.HEADER_VALUE: {
 		if(payload[i]!=0x0A) {
+		    offsets[nextOffsetIdx] = i;
+		    
 
 		}else{
 		    console.printf("STATUS.HEADER_VALUE FOUND\n");
+		    nextOffsetIdx += 1;
 
-		    status = STATUS.HEADER_NAME;
+		    status = STATUS.CHECK_NEXT_LINE;
 		}
 		break;
 		
