@@ -18,6 +18,7 @@ public class WirthHttpParser{
 	HEADER_VALUE(6),
 	FINISHED   (7),
 	CHECK_NEXT_LINE(9),
+	CHECK_CARRIAGE(10),
 	REQ_URI_START(8);
 	STATUS(int value) {this.value=value;};
 	private final int value;
@@ -109,28 +110,36 @@ public class WirthHttpParser{
 	    }
 		
 	    case STATUS.REQ_VERSION: {
-		if(payload[i]==0x0D){
+		if(payload[i]!=0x0D){
 	
-		    versionEnd = i - 1;
+		    versionEnd = i ;
 		    offsets[5]=versionEnd;
+		}else{
+
 		    nextOffsetIdx = 6;
 		    console.printf("STATUS.REQ_VERSOIN FOUND %d %d\n",versionStart,  versionEnd);
-		    status = STATUS.CHECK_NEXT_LINE;
+		    status = STATUS.CHECK_CARRIAGE;
 		}
+		
 		break;
 		
 	    }
+	    case STATUS.CHECK_CARRIAGE: {
+		if(payload[i]==0x0A){
+		    console.printf("STATUS.CHECK_CARRIAGE: carrriage  found %d\n", i);
+		    status = STATUS.CHECK_NEXT_LINE;
+		}
+		break;
+	    }
 		
 	    case STATUS.CHECK_NEXT_LINE: {
-		if(payload[i]==0x0A){
-		    console.printf("STATUS.CHECK_NEXT_LINE: newline  found %d\n", i);
-		    status = STATUS.CHECK_NEXT_LINE;
-		}else if(payload[i]==0x0D){
-		    console.printf("STATUS.CHECK_NEXT_LINE: carriage return found, this means the edn of the request, quitting ...\n");
+		
+		if(payload[i]==0x0D){
+		    console.printf("STATUS.CHECK_NEXT_LINE: another carriage return found, this means the edn of the request, quitting ...\n");
 		    status = STATUS.FINISHED;
 		}else{
 		    console.printf("STATUS.CHECK_NEXT_LINE: neither carriage return no newline found, this means there are headers %d %d \n", i, payload[i]);
-		    status = STATUS.HEADER_START;
+		    status = STATUS.HEADER_NAME;
 		    
 		}
 		break;
@@ -139,7 +148,7 @@ public class WirthHttpParser{
 		if(payload[i]==0x0A){
 		    console.printf("STATUS.HEADER_START FOUND %d\n", i);
 		    status = STATUS.HEADER_NAME;
-		    offsets[nextOffsetIdx]= i;
+		    offsets[nextOffsetIdx]= i -1;
 		    nextOffsetIdx += 1;
 		    
 
