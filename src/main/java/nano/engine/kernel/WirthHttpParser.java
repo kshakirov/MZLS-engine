@@ -109,14 +109,12 @@ public class WirthHttpParser{
 	    }
 		
 	    case STATUS.REQ_VERSION: {
-		if(payload[i]!=0x0D){
-		   
+		if(payload[i]==0x0D){
+		    offsets[5]=versionEnd;
 		    versionEnd = i;
-		}else if(payload[i]==0x0D){
-		     console.printf("STATUS.REQ_VERSOIN FOUND\n");
-		     offsets[5]=versionEnd;
-		     status = STATUS.CHECK_NEXT_LINE;
-		};
+		    console.printf("STATUS.REQ_VERSOIN FOUND\n");
+		    status = STATUS.CHECK_NEXT_LINE;
+		}
 		break;
 		
 	    }
