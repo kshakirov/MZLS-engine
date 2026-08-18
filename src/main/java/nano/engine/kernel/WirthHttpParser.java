@@ -92,7 +92,7 @@ public class WirthHttpParser{
 		switch(payload[i]){
 		case 0x0D :{
 		    status = STATUS.CHECK_NEXT_LINE;
-		    nextOffsetIdx = 6;
+		    nextOffsetIdx = 5;
 		    break;
 		}
 		default: {
@@ -107,8 +107,11 @@ public class WirthHttpParser{
 	    case CHECK_NEXT_LINE: {
 		switch(payload[i]){
 		case 0x0A :{
+		    console.printf("STATUS.NEXTL LINE : HEADER NAME STARTED i[%d] \n", i);
 		    status = STATUS.HEADER_NAME;
+		    nextOffsetIdx += 1;
 		    offsets[nextOffsetIdx] = i + 1;
+		    nextOffsetIdx += 1;
 		    break;
 		}
 		default: {
@@ -127,18 +130,44 @@ public class WirthHttpParser{
 		switch(payload[i]){
 		case 0x0D :{
 		    status = STATUS.FINISHED;
+
+		    break;
+		}
+		case 0x3A:{
+		    status = STATUS.HEADER_VALUE;
+		    nextOffsetIdx += 1;
 		    offsets[nextOffsetIdx] = i + 1;
+		    nextOffsetIdx += 1;
+		}
+		default: {
+		    //for the time being
+		    offsets[nextOffsetIdx] = i;
+
+		    break;
+		}
+
+		}
+		    break;	       
+	    }
+
+	    case HEADER_VALUE: {
+		switch(payload[i]){
+		case 0x0D :{
+		    console.printf("STATUS.HEADER VALUE : HEADER VALUE FINISHED i[%d] \n", i);
+		    status = STATUS.CHECK_NEXT_LINE;
 		    break;
 		}
 		default: {
 		    //for the time being
-		    status = STATUS.FINISHED;
+		    offsets[nextOffsetIdx] = i;
+		    
 		    break;
 		}
 
 		}
 		    break;	       
 	    }	
+
 		
 
 	    case STATUS.FINISHED: {
