@@ -57,16 +57,16 @@ public  class TestWirthHttpParser{
 	var console= System.console();
 	System.out.println("Hello");
 	var parser = new WirthHttpParser();
-	var result = parser.parse(heavyGet);
+	var result = parser.parse(shortGet);
 	System.out.printf("length payload %d \n", result.length);
 		
 	//var result = parser.parse(shortGet);
-	dumpOffsets(heavyGet, result);
-	dumpHeader(heavyGet, result[6], result[7]);
-	dumpHeader(heavyGet, result[7], result[8]);
-	dumpHeader(heavyGet, result[8], result[9]);
-	dumpHeader(heavyGet, result[9], result[10]);
-	dumpHeader(heavyGet, result[11], result[12]);
+	dumpOffsets(shortGet, result);
+	// dumpHeader(heavyGet, result[6], result[7]);
+	// dumpHeader(heavyGet, result[7], result[8]);
+	// dumpHeader(heavyGet, result[8], result[9]);
+	// dumpHeader(heavyGet, result[9], result[10]);
+	// dumpHeader(heavyGet, result[11], result[12]);
     
     }
      

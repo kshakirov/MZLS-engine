@@ -5,11 +5,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
+
+
+
 import java.nio.ByteBuffer;
 
 public class WirthHttpParser{
     public enum STATUS {
-	REQ_START(0),
+
 	REQ_METHOD(1),
 	REQ_URI(2),
 	REQ_VERSION(3),
@@ -19,7 +22,8 @@ public class WirthHttpParser{
 	FINISHED   (7),
 	CHECK_NEXT_LINE(9),
 	CHECK_CARRIAGE(10),
-	REQ_URI_START(8);
+	REQ_URI_START(8),
+	ERROR(11);
 	STATUS(int value) {this.value=value;};
 	private final int value;
 	public int value() {return value;}
@@ -37,7 +41,7 @@ public class WirthHttpParser{
     
     public int[]  parse(byte[] payload){
 	//	var payload = stream.toByteArray();
-	var status = STATUS.REQ_START;
+	var status = STATUS.REQ_METHOD;
 	var console = System.console();
 	var methodStart=0;
 	var methodEnd=0;
@@ -52,142 +56,91 @@ public class WirthHttpParser{
 	var offsets = new int[32];// 127 method, uri,headers should be enough 
 	for (int i=0; i < payload.length; i++){
 	    switch(status){
-	    case STATUS.REQ_START: {
-		status = STATUS.REQ_METHOD;
-		methodStart = i;
-	    };
-		break;
-	    case STATUS.REQ_METHOD: {
-		if(i==0 && i !=0x20){
-		}
-		if(i==3){
-		    var method = isGetOrPut(payload);
-		    if(method){
-			console.printf("STATUS.REQ_METHOD FOUND\n");
-			offsets[0] = methodStart; //first offset for method
-			methodEnd= i ;
-			offsets[1] = methodEnd;
-			ddos =false;
-			status = STATUS.REQ_URI;
-		    }else if(i==4) {
-			
-		    }else if(i==5){
-
-		    }
-		    else if(i==6){
-			
-		    }else if(i==7){
-
-		    }else if(i> 7){
-
-		    }
-		}
-		    
-	    }
-	
-	    case STATUS.REQ_URI_START: {
-		if(payload[i]==0x20){
-		    console.printf("STATUS.REQ_URI_START FOUND\n");
+	    case REQ_METHOD: {
+		switch(payload[i])  {
+		case 0x20: {
 		    status = STATUS.REQ_URI;
-		    uriStart = i + 1;
-		    offsets[2] = uriStart;
+		    offsets[2] = i + 1;
+		    break;
+		}
+		default: {
+		    offsets[1] = i;
+		    break;
+		}
 		}
 		break;
-		
+			
 	    }
-	    case STATUS.REQ_URI: {
-		if(payload[i]!=0x20){
-		    uriEnd = i;
-		    offsets[3]= uriEnd;
-		    
-		}else{
-		    console.printf("STATUS.REQ_URI FOUND\n");
+	    case REQ_URI :{
+		switch(payload[i]){
+		case 0x20 :{
 		    status = STATUS.REQ_VERSION;
-		    versionStart = i + 1;
-		    offsets[4] = versionStart;
+		    offsets[4] = i + 1;
+		    break;
+
+		}
+		default: {
+		    offsets[3]= i;
+		    break;
+
+		}
+		    
 		}
 		break;
 	    }
-		
-	    case STATUS.REQ_VERSION: {
-		if(payload[i]!=0x0D){
-	
-		    versionEnd = i ;
-		    offsets[5]=versionEnd;
-		}else{
-
+	    case REQ_VERSION :{
+		switch(payload[i]){
+		case 0x0D :{
+		    status = STATUS.CHECK_NEXT_LINE;
 		    nextOffsetIdx = 6;
-		    console.printf("STATUS.REQ_VERSOIN FOUND %d %d\n",versionStart,  versionEnd);
-		    status = STATUS.CHECK_CARRIAGE;
+		    break;
 		}
-		
-		break;
-		
-	    }
-	    case STATUS.CHECK_CARRIAGE: {
-		if(payload[i]==0x0A){
-		    console.printf("STATUS.CHECK_CARRIAGE: carrriage  found %d\n", i);
-		    status = STATUS.CHECK_NEXT_LINE;
+		default: {
+		    offsets[5]= i;
+		    break;
+
+		}
+
 		}
 		break;
 	    }
-		
-	    case STATUS.CHECK_NEXT_LINE: {
-		
-		if(payload[i]==0x0D){
-		    console.printf("STATUS.CHECK_NEXT_LINE: another carriage return found, this means the edn of the request, quitting ...\n");
+	    case CHECK_NEXT_LINE: {
+		switch(payload[i]){
+		case 0x0A :{
+		    status = STATUS.HEADER_NAME;
+		    offsets[nextOffsetIdx] = i + 1;
+		    break;
+		}
+		default: {
+		    status = STATUS.ERROR;
+		    break;
+
+		}
+		}
+		break;
+	       
+	    }
+
+
+
+	    case HEADER_NAME: {
+		switch(payload[i]){
+		case 0x0D :{
 		    status = STATUS.FINISHED;
-		}else{
-		    console.printf("STATUS.CHECK_NEXT_LINE: neither carriage return no newline found, this means there are headers %d %d \n", i, payload[i]);
-		    status = STATUS.HEADER_NAME;
-		    
+		    offsets[nextOffsetIdx] = i + 1;
+		    break;
 		}
-		break;
-	    }
-	    case STATUS.HEADER_START: {
-		if(payload[i]==0x0A){
-		    console.printf("STATUS.HEADER_START FOUND %d\n", i);
-		    status = STATUS.HEADER_NAME;
-		    offsets[nextOffsetIdx]= i -1;
-		    nextOffsetIdx += 1;
-		    
-
+		default: {
+		    //for the time being
+		    status = STATUS.FINISHED;
+		    break;
+		}
 
 		}
-		break;
+		    break;	       
+	    }	
 		
-	    }
-	    case STATUS.HEADER_NAME: {
-		if(payload[i]!=0x3A){
 
-		    status = STATUS.HEADER_NAME;
-		    offsets[nextOffsetIdx] = i;
-
-		}else{
-		    console.printf("STATUS.HEADER_NAME FOUND next is %d \n", nextOffsetIdx);
-
-		    nextOffsetIdx += 1;
-		    status= STATUS.HEADER_VALUE;
-		   
-		}   
-
-		break;
-		
-	    }
-	    case STATUS.HEADER_VALUE: {
-		if(payload[i]!=0x0A) {
-		    offsets[nextOffsetIdx] = i;
-		    
-
-		}else{
-		    console.printf("STATUS.HEADER_VALUE FOUND\n");
-		    nextOffsetIdx += 1;
-
-		    status = STATUS.CHECK_NEXT_LINE;
-		}
-		break;
-		
-	    }
 	    case STATUS.FINISHED: {
 		console.printf("STATUS.FINISH: reading \n");
 		break;
