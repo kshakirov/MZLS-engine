@@ -63,8 +63,8 @@ public  class TestWirthHttpParser{
 	//var result = parser.parse(shortGet);
 	dumpOffsets(standardGet, result);
 	dumpHeader(standardGet, result[6], result[7]);
-	// dumpHeader(heavyGet, result[7], result[8]);
-	// dumpHeader(heavyGet, result[8], result[9]);
+	dumpHeader(standardGet, result[8], result[9]);
+	dumpHeader(standardGet, result[10], result[11]);
 	// dumpHeader(heavyGet, result[9], result[10]);
 	// dumpHeader(heavyGet, result[11], result[12]);
     

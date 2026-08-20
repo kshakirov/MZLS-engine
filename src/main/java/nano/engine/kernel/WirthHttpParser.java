@@ -100,9 +100,9 @@ public class WirthHttpParser{
 		case 0x0A :{
 		    console.printf("STATUS.NEXTL LINE : HEADER NAME STARTED i[%d] \n", i);
 		    status = STATUS.HEADER_NAME;
-		    nextOffsetIdx += 1;
+		    nextOffsetIdx += 1;//convention each header part increments offset for itself
 		    offsets[nextOffsetIdx] = i + 1;
-		    nextOffsetIdx += 1;
+		    //nextOffsetIdx += 1;
 		    break;
 		}
 		default: {
@@ -127,13 +127,15 @@ public class WirthHttpParser{
 		case 0x3A:{
 		    status = STATUS.HEADER_VALUE;
 		    nextOffsetIdx += 1;
-		    offsets[nextOffsetIdx] = i + 1;
+		    offsets[nextOffsetIdx] = i;//the end exclusive of Header name
 		    nextOffsetIdx += 1;
+		    offsets[nextOffsetIdx] = i + 1;//the start of header value inclusive
+
 		    break;
 		}
 		default: {
 		    //for the time being
-		    offsets[nextOffsetIdx] = i;
+		    
 
 		    break;
 		}
@@ -147,11 +149,13 @@ public class WirthHttpParser{
 		case 0x0D :{
 		    console.printf("STATUS.HEADER VALUE : HEADER VALUE FINISHED i[%d] \n", i);
 		    status = STATUS.CHECK_NEXT_LINE;
+		    nextOffsetIdx += 1;
+		    offsets[nextOffsetIdx] = i; //the end of header value exclusive
 		    break;
 		}
 		default: {
 		    //for the time being
-		    offsets[nextOffsetIdx] = i;
+
 		    
 		    break;
 		}
