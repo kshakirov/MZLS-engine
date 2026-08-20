@@ -16,13 +16,10 @@ public class WirthHttpParser{
 	REQ_METHOD(1),
 	REQ_URI(2),
 	REQ_VERSION(3),
-	HEADER_START(4),
 	HEADER_NAME(5),
 	HEADER_VALUE(6),
 	FINISHED   (7),
 	CHECK_NEXT_LINE(9),
-	CHECK_CARRIAGE(10),
-	REQ_URI_START(8),
 	ERROR(11);
 	STATUS(int value) {this.value=value;};
 	private final int value;
@@ -43,14 +40,8 @@ public class WirthHttpParser{
 	//	var payload = stream.toByteArray();
 	var status = STATUS.REQ_METHOD;
 	var console = System.console();
-	var methodStart=0;
-	var methodEnd=0;
-	var uriStart=0;
-	var uriEnd =0;
-	var versionStart =0;
-	var versionEnd=0;
 	var nextOffsetIdx =0;
-	var ddos = true;
+
 
 	
 	var offsets = new int[32];// 127 method, uri,headers should be enough 
@@ -138,6 +129,7 @@ public class WirthHttpParser{
 		    nextOffsetIdx += 1;
 		    offsets[nextOffsetIdx] = i + 1;
 		    nextOffsetIdx += 1;
+		    break;
 		}
 		default: {
 		    //for the time being
