@@ -1,0 +1,17 @@
+# Maven build output
+/target/
+
+# Eclipse workspace metadata
+/.classpath
+/.project
+/.settings/
+
+# Editor backup files
+*~
+[#]*[#]
+
+# Generated LaTeX journal artifacts
+/doc/adr/adr_journal.aux
+/doc/adr/adr_journal.log
+/doc/adr/adr_journal.out
+/doc/adr/adr_journal.pdf
