@@ -20,6 +20,7 @@ public class WirthHttpParser{
 	HEADER_VALUE(6),
 	FINISHED   (7),
 	CHECK_NEXT_LINE(9),
+	CHECK_CRLF(12),
 	ERROR(11);
 	STATUS(int value) {this.value=value;};
 	private final int value;
@@ -51,11 +52,12 @@ public class WirthHttpParser{
 		switch(payload[i])  {
 		case 0x20: {
 		    status = STATUS.REQ_URI;
-		    offsets[2] = i + 1;
+		    offsets[1]= i; //end of method
+		    offsets[2] = i + 1; //start of uri
 		    break;
 		}
 		default: {
-		    offsets[1] = i;
+		    //		    offsets[1] = i;
 		    break;
 		}
 		}
@@ -66,12 +68,13 @@ public class WirthHttpParser{
 		switch(payload[i]){
 		case 0x20 :{
 		    status = STATUS.REQ_VERSION;
+		    offsets[3]= i; //the same logic as above
 		    offsets[4] = i + 1;
 		    break;
 
 		}
 		default: {
-		    offsets[3]= i;
+
 		    break;
 
 		}
@@ -83,11 +86,12 @@ public class WirthHttpParser{
 		switch(payload[i]){
 		case 0x0D :{
 		    status = STATUS.CHECK_NEXT_LINE;
+		    offsets[5]= i;//end of version
 		    nextOffsetIdx = 5;
 		    break;
 		}
 		default: {
-		    offsets[5]= i;
+
 		    break;
 
 		}
@@ -98,7 +102,7 @@ public class WirthHttpParser{
 	    case CHECK_NEXT_LINE: {
 		switch(payload[i]){
 		case 0x0A :{
-		    console.printf("STATUS.NEXTL LINE : HEADER NAME STARTED i[%d] \n", i);
+		    //console.printf("STATUS.NEXTL LINE : HEADER NAME STARTED i[%d] \n", i);
 		    status = STATUS.HEADER_NAME;
 		    nextOffsetIdx += 1;//convention each header part increments offset for itself
 		    offsets[nextOffsetIdx] = i + 1;
@@ -120,8 +124,8 @@ public class WirthHttpParser{
 	    case HEADER_NAME: {
 		switch(payload[i]){
 		case 0x0D :{
-		    status = STATUS.FINISHED;
-
+		    status = STATUS.CHECK_CRLF;
+		    //		    console.printf("Going to CRLF\n");
 		    break;
 		}
 		case 0x3A:{
@@ -144,10 +148,29 @@ public class WirthHttpParser{
 		    break;	       
 	    }
 
+	    case CHECK_CRLF: {
+
+		switch (payload[i]){
+
+		    
+		case 0x0A:{
+		    //		    console.printf("current %d\n", payload[i]);
+		    status = STATUS.FINISHED;
+		    break;
+		}
+		default:{
+		    status = STATUS.ERROR;
+		    break;
+		    
+		}
+		}
+		break;
+	    }
+
 	    case HEADER_VALUE: {
 		switch(payload[i]){
 		case 0x0D :{
-		    console.printf("STATUS.HEADER VALUE : HEADER VALUE FINISHED i[%d] \n", i);
+		    //		    console.printf("STATUS.HEADER VALUE : HEADER VALUE FINISHED i[%d] \n", i);
 		    status = STATUS.CHECK_NEXT_LINE;
 		    nextOffsetIdx += 1;
 		    offsets[nextOffsetIdx] = i; //the end of header value exclusive
@@ -167,9 +190,14 @@ public class WirthHttpParser{
 		
 
 	    case STATUS.FINISHED: {
-		console.printf("STATUS.FINISH: reading \n");
+		//		console.printf("STATUS.FINISH: reading \n");
 		break;
 		//return offsets;
+	    }
+
+	    case ERROR:{
+		//		console.printf("STATUS.ERROR: reading \n");
+		break; //только чтобы не подсвечило пока статус как ошибка
 	    }
 	    }
 	
@@ -203,10 +231,5 @@ public class WirthHttpParser{
 	return true;
     }
     
-
-    private String sliceByteArray(int start, int end, byte[] payload){
-	ByteBuffer sliceBuffer = ByteBuffer.wrap(payload, start, end).slice();
-	return sliceBuffer.toString();
-    }
 
 }

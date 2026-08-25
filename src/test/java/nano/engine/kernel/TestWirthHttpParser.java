@@ -27,46 +27,45 @@ public  class TestWirthHttpParser{
 				      "\r\n"
 				      ).getBytes(java.nio.charset.StandardCharsets.UTF_8);
     public static void dumpOffsets(byte[] payload, int[] offsets) {
-	String[] names = {"METHOD", "URI", "VERSION"};
-    
-	for (int j = 0; j < names.length; j++) {
-	    int start = offsets[j * 2];
-	    int end = offsets[j * 2 + 1];
-	    int length = end - start + 1; // +1, так как энд-индекс у тебя включительный
-
-
-	    System.out.print( names[j] + ": [");
-	    // Печатаем сырые байты прямо в консоль как символы
+	for (int j = 0; j < 6; j+=2) {
+	    int start = offsets[j];
+	    int end = offsets[j + 1];
+	    int length = end - start; 
 	    System.out.write(payload, start, length);
-	    System.out.println("]");
+	    System.out.println("");
 	
 	}
 
     
     }
-    public static void dumpHeader(byte[] payload, int start, int end){
-	System.out.printf("start %d end %d\n", start, end);
-	int length = end - start;
-	String str = new String(payload, start, length, StandardCharsets.UTF_8);
-	System.out.println(str);
+    public static void dumpHeader(byte[] payload, int[] offsets, int start){
+	for(int j= start;j <= offsets.length /4 + 4;j+=4){
+	    int startN = offsets[j];
+	    int endN = offsets[j + 1];
+	    int startV = offsets[j+2];
+	    int endV = offsets[j + 3];
+
+	    int lengthN = endN - startN;
+	    int lengthV = endV - startV;
+	    
+	    System.out.write(payload, startN, lengthN);
+	    System.out.write(payload, startV, lengthV);
+
+	    System.out.println("");
+	}
     }
 
 
 
     public static void main(String[] args){
-	var console= System.console();
-	System.out.println("Hello");
+
 	var parser = new WirthHttpParser();
 	var result = parser.parse(standardGet);
-	System.out.printf("length payload %d \n", result.length);
-		
-	//var result = parser.parse(shortGet);
+
 	dumpOffsets(standardGet, result);
-	dumpHeader(standardGet, result[6], result[7]);
-	dumpHeader(standardGet, result[8], result[9]);
-	dumpHeader(standardGet, result[10], result[11]);
-	// dumpHeader(heavyGet, result[9], result[10]);
-	// dumpHeader(heavyGet, result[11], result[12]);
+	dumpHeader(standardGet,result,6);
+
+
     
     }
      
