@@ -19,7 +19,7 @@ import nano.engine.kernel.SimpleHttpReqParser;
 public class TestSocketServer {
 
     private Path path;
-    private Console console ;
+    //private Console console ;
 
       
     public TestSocketServer(String path){
@@ -31,7 +31,7 @@ public class TestSocketServer {
 	}catch(IOException exception){
 	    
 	}
-	this.console = System.console();
+	//this.console = System.console();
 
 
     }
@@ -42,7 +42,7 @@ public class TestSocketServer {
 	socketFile.setWritable(true, false); // false означает "для всех", а не только для владельца
 	socketFile.setReadable(true, false);
 	serChannel.bind(socketAddress);
-	console.printf("Waiting ...");
+	//	console.printf("Waiting ...");
 	SocketChannel channel;
 	ExecutorService exService = Executors.newVirtualThreadPerTaskExecutor();
 	while ((channel = serChannel.accept()) != null){
@@ -55,11 +55,11 @@ public class TestSocketServer {
     class MyConnectionHandler implements Runnable{
 	private int buffSize;
 	private SocketChannel channel;
-	private Console console;
+	//private Console console;
 	public MyConnectionHandler(SocketChannel channel, int buffSize){
 	    this.channel = channel;
 	    this.buffSize = buffSize;
-	    this.console = System.console();
+	    //	    this.console = System.console();
 	}
 	public void run() {
 	    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
