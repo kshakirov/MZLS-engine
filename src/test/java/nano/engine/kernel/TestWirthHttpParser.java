@@ -40,8 +40,8 @@ public  class TestWirthHttpParser{
 
     
     }
-    public static void dumpHeader(byte[] payload, int[] offsets, int start){
-	for(int j= start;j <= offsets.length /4 + 4;j+=4){
+    public static void dumpHeader(byte[] payload, int[] offsets, int start, int end){
+	for(int j= start;j <= end /4 + 4;j+=4){
 	    int startN = offsets[j];
 	    int endN = offsets[j + 1];
 	    int startV = offsets[j+2];
@@ -62,11 +62,12 @@ public  class TestWirthHttpParser{
     public static void main(String[] args){
 
 	var parser = new WirthHttpParser();
-	var data = new WirthHttpParser.WirthParsedData(STATUS.REQ_METHOD,0,0, new int[32]);
+	var data = new WirthHttpParser.WirthParsedData(STATUS.REQ_METHOD,0,0, new int[64]);
 	var result = parser.parse(standardGet,data);
+	var nextOffsetId = result.nextOffsetIdx();
 
 	dumpOffsets(standardGet, result.offsetsTable());
-	dumpHeader(standardGet,result.offsetsTable(),6);
+	dumpHeader(standardGet,result.offsetsTable(),6, nextOffsetId );
 
 
     
