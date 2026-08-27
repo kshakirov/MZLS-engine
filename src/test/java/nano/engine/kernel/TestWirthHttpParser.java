@@ -4,6 +4,8 @@ package nano.engine.kernel;
 import java.nio.charset.StandardCharsets;
 
 import nano.engine.kernel.WirthHttpParser;
+import nano.engine.kernel.WirthHttpParser.STATUS;
+import nano.engine.kernel.WirthHttpParser.WirthParsedData;
 public  class TestWirthHttpParser{
     private static byte[] standardGet = (
 					 "GET /index.html HTTP/1.0\r\n" +
@@ -60,10 +62,11 @@ public  class TestWirthHttpParser{
     public static void main(String[] args){
 
 	var parser = new WirthHttpParser();
-	var result = parser.parse(standardGet);
+	var data = new WirthHttpParser.WirthParsedData(STATUS.REQ_METHOD,0,0, new int[32]);
+	var result = parser.parse(standardGet,data);
 
-	dumpOffsets(standardGet, result);
-	dumpHeader(standardGet,result,6);
+	dumpOffsets(standardGet, result.offsetsTable());
+	dumpHeader(standardGet,result.offsetsTable(),6);
 
 
     

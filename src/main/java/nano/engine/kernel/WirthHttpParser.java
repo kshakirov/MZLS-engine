@@ -36,17 +36,16 @@ public class WirthHttpParser{
 	public String value() {return value;}
 	public byte[] bValue() {return value.getBytes();}
     }
-    
-    public int[]  parse(byte[] payload){
+    public record WirthParsedData(STATUS status, int nextOffsetIdx, int consumedBytes, int[] offsetsTable){};
+    public WirthParsedData  parse(byte[] payload, WirthParsedData wirthParsedData){
 	//	var payload = stream.toByteArray();
-	var status = STATUS.REQ_METHOD;
-	var console = System.console();
-	var nextOffsetIdx =0;
-
+	var status = wirthParsedData.status();
+	var nextOffsetIdx = wirthParsedData.nextOffsetIdx();
+	
 
 	
-	var offsets = new int[32];// 127 method, uri,headers should be enough 
-	for (int i=0; i < payload.length; i++){
+	var offsets = wirthParsedData.offsetsTable();// 127 method, uri,headers should be enough 
+	for (int i=wirthParsedData.consumedBytes(); i < payload.length; i++){
 	    switch(status){
 	    case REQ_METHOD: {
 		switch(payload[i])  {
@@ -205,7 +204,7 @@ public class WirthHttpParser{
 	       
 	}
 	    
-	return offsets;
+	return new WirthParsedData(status, nextOffsetIdx, 0, offsets);
 	
     }
    
