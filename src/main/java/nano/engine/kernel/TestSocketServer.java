@@ -14,8 +14,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import nano.engine.kernel.SimpleHttpReqParser;
 import nano.engine.kernel.WirthHttpParser;
+import nano.engine.kernel.HttpRequestParser.ParsedData;
+import sun.security.provider.HSS;
 public class TestSocketServer {
 
     private Path path;
@@ -57,11 +58,12 @@ public class TestSocketServer {
 	private int buffSize;
 	private SocketChannel channel;
 	private WirthHttpParser wirthParser;
-
+	private HttpRequestParser httpRequestParser;
 	public MyConnectionHandler(SocketChannel channel, int buffSize){
 	    this.channel = channel;
 	    this.buffSize = buffSize;
 	    this.wirthParser =new WirthHttpParser();
+	    this.httpRequestParser = new HttpRequestParser();
 
 	}
 	public void run() {
@@ -88,8 +90,9 @@ public class TestSocketServer {
 
 		    inBuf.clear();
 
-		    var offsetsTable = wirthParser.parse(bytes);
-		    if(offsetsTable != null){
+		    //		    var offsetsTable = wirthParser.parse(bytes);
+		    ParsedData parsedData = this.httpRequestParser.parse(bytes);
+		    if(parsedData.offsetTable() != null){
 
 			channel.write(ByteBuffer.wrap(response));
 

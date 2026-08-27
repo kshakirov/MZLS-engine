@@ -208,28 +208,5 @@ public class WirthHttpParser{
 	return offsets;
 	
     }
-    private boolean isGetOrPut(byte[] payload){
-	//we know exactly the possible length of method
-	if(fullMatch(METHODS.GET.bValue(),payload, 0)){
-	    return true;
-	}
-	if(fullMatch(METHODS.PUT.bValue(),payload, 0)){
-	    return true;
-	}
-
-		
-	return false;
-    }
-
-    private boolean fullMatch(byte[] template, byte[] candidate, int candiadateOffset){
-	var length = template.length;
-	for (int i =0;i< length;i++){
-	    if(template[i]!=candidate[candiadateOffset + i]){
-		return false;
-	    }
-	}
-	return true;
-    }
-    
-
+   
 }
