@@ -63,14 +63,21 @@ public  class TestWirthHttpParser{
 
 	var parser = new WirthHttpParser();
 	var data = new WirthHttpParser.WirthParsedData(STATUS.REQ_METHOD,0,0, new int[64]);
-	var result = parser.parse(standardGet,data);
+	var wholeResult = parser.parse(standardGet,data);
+	var streamedResult  = new WirthHttpParser.WirthParsedData(STATUS.REQ_METHOD,0,0, new int[64]);
 	var payload = standardGet;
 	for (int i =0; i< payload.length ; i++){
-	    data =  parser.parse(new byte[]{payload[i]}, data);
-	    System.out.printf("consumedBytes %d nextOffsetIds %d Status %s\n", data.consumedBytes(), data.nextOffsetIdx(), data.status());
+	    streamedResult =  parser.parse(new byte[]{payload[i]}, streamedResult);
+	    System.out.printf("consumedBytes %d nextOffsetIds %d Status %s\n", streamedResult.consumedBytes(), streamedResult.nextOffsetIdx(), streamedResult.status());
 	}
-
-
+	assert(wholeResult.offsetsTable() != streamedResult.offsetsTable());
+	assert(wholeResult.consumedBytes() == streamedResult.consumedBytes());
+	assert(wholeResult.nextOffsetIdx() == streamedResult.nextOffsetIdx());
+	assert(wholeResult.status() == streamedResult.status());
+	assert(wholeResult.offsetsTable().length == streamedResult.offsetsTable().length);
+	for(int i=0;i <wholeResult.offsetsTable().length; i++){
+	    assert(wholeResult.offsetsTable()[i] == streamedResult.offsetsTable()[i]);
+	}
     
     }
      
