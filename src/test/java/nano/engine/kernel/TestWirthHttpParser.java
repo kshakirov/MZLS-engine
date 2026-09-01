@@ -64,10 +64,11 @@ public  class TestWirthHttpParser{
 	var parser = new WirthHttpParser();
 	var data = new WirthHttpParser.WirthParsedData(STATUS.REQ_METHOD,0,0, new int[64]);
 	var result = parser.parse(standardGet,data);
-	var nextOffsetId = result.nextOffsetIdx();
-
-	dumpOffsets(standardGet, result.offsetsTable());
-	dumpHeader(standardGet,result.offsetsTable(),6, nextOffsetId );
+	var payload = standardGet;
+	for (int i =0; i< payload.length ; i++){
+	    data =  parser.parse(new byte[]{payload[i]}, data);
+	    System.out.printf("consumedBytes %d nextOffsetIds %d Status %s\n", data.consumedBytes(), data.nextOffsetIdx(), data.status());
+	}
 
 
     

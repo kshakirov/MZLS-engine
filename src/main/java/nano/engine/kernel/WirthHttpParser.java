@@ -41,18 +41,19 @@ public class WirthHttpParser{
 	//	var payload = stream.toByteArray();
 	var status = wirthParsedData.status();
 	var nextOffsetIdx = wirthParsedData.nextOffsetIdx();
+	var index = 0;
 	
 
 	
 	var offsets = wirthParsedData.offsetsTable();// 127 method, uri,headers should be enough 
-	for (int i=wirthParsedData.consumedBytes(); i < payload.length; i++){
+	for (; index < payload.length; index++){
 	    switch(status){
 	    case REQ_METHOD: {
-		switch(payload[i])  {
+		switch(payload[index])  {
 		case 0x20: {
 		    status = STATUS.REQ_URI;
-		    offsets[1]= i; //end of method
-		    offsets[2] = i + 1; //start of uri
+		    offsets[1]= index + wirthParsedData.consumedBytes(); //end of method
+		    offsets[2] = index + 1+ wirthParsedData.consumedBytes(); //start of uri
 		    break;
 		}
 		default: {
@@ -64,11 +65,11 @@ public class WirthHttpParser{
 			
 	    }
 	    case REQ_URI :{
-		switch(payload[i]){
+		switch(payload[index]){
 		case 0x20 :{
 		    status = STATUS.REQ_VERSION;
-		    offsets[3]= i; //the same logic as above
-		    offsets[4] = i + 1;
+		    offsets[3]= index + wirthParsedData.consumedBytes(); //the same logic as above
+		    offsets[4] = index + 1 + wirthParsedData.consumedBytes();
 		    break;
 
 		}
@@ -82,10 +83,10 @@ public class WirthHttpParser{
 		break;
 	    }
 	    case REQ_VERSION :{
-		switch(payload[i]){
+		switch(payload[index]){
 		case 0x0D :{
 		    status = STATUS.CHECK_NEXT_LINE;
-		    offsets[5]= i;//end of version
+		    offsets[5]= index + wirthParsedData.consumedBytes();//end of version
 		    nextOffsetIdx = 5;
 		    break;
 		}
@@ -99,12 +100,12 @@ public class WirthHttpParser{
 		break;
 	    }
 	    case CHECK_NEXT_LINE: {
-		switch(payload[i]){
+		switch(payload[index]){
 		case 0x0A :{
 		    //console.printf("STATUS.NEXTL LINE : HEADER NAME STARTED i[%d] \n", i);
 		    status = STATUS.HEADER_NAME;
 		    nextOffsetIdx += 1;//convention each header part increments offset for itself
-		    offsets[nextOffsetIdx] = i + 1;
+		    offsets[nextOffsetIdx] = index + 1 + wirthParsedData.consumedBytes();
 		    //nextOffsetIdx += 1;
 		    break;
 		}
@@ -121,7 +122,7 @@ public class WirthHttpParser{
 
 
 	    case HEADER_NAME: {
-		switch(payload[i]){
+		switch(payload[index]){
 		case 0x0D :{
 		    status = STATUS.CHECK_CRLF;
 		    //		    console.printf("Going to CRLF\n");
@@ -130,9 +131,9 @@ public class WirthHttpParser{
 		case 0x3A:{
 		    status = STATUS.HEADER_VALUE;
 		    nextOffsetIdx += 1;
-		    offsets[nextOffsetIdx] = i;//the end exclusive of Header name
+		    offsets[nextOffsetIdx] = index + wirthParsedData.consumedBytes();//the end exclusive of Header name
 		    nextOffsetIdx += 1;
-		    offsets[nextOffsetIdx] = i + 1;//the start of header value inclusive
+		    offsets[nextOffsetIdx] = index + 1 + wirthParsedData.consumedBytes();//the start of header value inclusive
 
 		    break;
 		}
@@ -149,7 +150,7 @@ public class WirthHttpParser{
 
 	    case CHECK_CRLF: {
 
-		switch (payload[i]){
+		switch (payload[index]){
 
 		    
 		case 0x0A:{
@@ -167,12 +168,12 @@ public class WirthHttpParser{
 	    }
 
 	    case HEADER_VALUE: {
-		switch(payload[i]){
+		switch(payload[index]){
 		case 0x0D :{
 		    //		    console.printf("STATUS.HEADER VALUE : HEADER VALUE FINISHED i[%d] \n", i);
 		    status = STATUS.CHECK_NEXT_LINE;
 		    nextOffsetIdx += 1;
-		    offsets[nextOffsetIdx] = i; //the end of header value exclusive
+		    offsets[nextOffsetIdx] = index + wirthParsedData.consumedBytes(); //the end of header value exclusive
 		    break;
 		}
 		default: {
@@ -204,7 +205,7 @@ public class WirthHttpParser{
 	       
 	}
 	    
-	return new WirthParsedData(status, nextOffsetIdx, 0, offsets);
+	return new WirthParsedData(status, nextOffsetIdx, index + wirthParsedData.consumedBytes(), offsets);
 	
     }
    
