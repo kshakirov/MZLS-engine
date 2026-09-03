@@ -36,24 +36,35 @@ public class WirthHttpParser{
 	public String value() {return value;}
 	public byte[] bValue() {return value.getBytes();}
     }
+    private STATUS status;
+    private  int nextOffsetIdx;
+    private int consumedBytes;
+    private int[] offsets; 
+    public WirthHttpParser (){
+	this.status = STATUS.REQ_METHOD;
+	this.nextOffsetIdx =0;
+	this.consumedBytes =0;
+	this.offsets = new int[64];
+    }
+  
     public record WirthParsedData(STATUS status, int nextOffsetIdx, int consumedBytes, int[] offsetsTable){};
-    public WirthParsedData  parse(byte[] payload, WirthParsedData wirthParsedData){
+    public STATUS  parse(byte[] payload){
 	//	var payload = stream.toByteArray();
-	var status = wirthParsedData.status();
-	var nextOffsetIdx = wirthParsedData.nextOffsetIdx();
+	//	var status = wirthParsedData.status();
+	//var nextOffsetIdx = wirthParsedData.nextOffsetIdx();
 	var index = 0;
 	
 
 	
-	var offsets = wirthParsedData.offsetsTable();// 127 method, uri,headers should be enough 
+	//var offsets = wirthParsedData.offsetsTable();// 127 method, uri,headers should be enough 
 	for (; index < payload.length; index++){
 	    switch(status){
 	    case REQ_METHOD: {
 		switch(payload[index])  {
 		case 0x20: {
 		    status = STATUS.REQ_URI;
-		    offsets[1]= index + wirthParsedData.consumedBytes(); //end of method
-		    offsets[2] = index + 1+ wirthParsedData.consumedBytes(); //start of uri
+		    offsets[1]= index + consumedBytes; //end of method
+		    offsets[2] = index + 1+ consumedBytes; //start of uri
 		    break;
 		}
 		default: {
@@ -68,8 +79,8 @@ public class WirthHttpParser{
 		switch(payload[index]){
 		case 0x20 :{
 		    status = STATUS.REQ_VERSION;
-		    offsets[3]= index + wirthParsedData.consumedBytes(); //the same logic as above
-		    offsets[4] = index + 1 + wirthParsedData.consumedBytes();
+		    offsets[3]= index + consumedBytes; //the same logic as above
+		    offsets[4] = index + 1 + consumedBytes;
 		    break;
 
 		}
@@ -86,7 +97,7 @@ public class WirthHttpParser{
 		switch(payload[index]){
 		case 0x0D :{
 		    status = STATUS.CHECK_NEXT_LINE;
-		    offsets[5]= index + wirthParsedData.consumedBytes();//end of version
+		    offsets[5]= index + consumedBytes;//end of version
 		    nextOffsetIdx = 5;
 		    break;
 		}
@@ -105,7 +116,7 @@ public class WirthHttpParser{
 		    //console.printf("STATUS.NEXTL LINE : HEADER NAME STARTED i[%d] \n", i);
 		    status = STATUS.HEADER_NAME;
 		    nextOffsetIdx += 1;//convention each header part increments offset for itself
-		    offsets[nextOffsetIdx] = index + 1 + wirthParsedData.consumedBytes();
+		    offsets[nextOffsetIdx] = index + 1 + consumedBytes;
 		    //nextOffsetIdx += 1;
 		    break;
 		}
@@ -131,9 +142,9 @@ public class WirthHttpParser{
 		case 0x3A:{
 		    status = STATUS.HEADER_VALUE;
 		    nextOffsetIdx += 1;
-		    offsets[nextOffsetIdx] = index + wirthParsedData.consumedBytes();//the end exclusive of Header name
+		    offsets[nextOffsetIdx] = index + consumedBytes;//the end exclusive of Header name
 		    nextOffsetIdx += 1;
-		    offsets[nextOffsetIdx] = index + 1 + wirthParsedData.consumedBytes();//the start of header value inclusive
+		    offsets[nextOffsetIdx] = index + 1 + consumedBytes;//the start of header value inclusive
 
 		    break;
 		}
@@ -173,7 +184,7 @@ public class WirthHttpParser{
 		    //		    console.printf("STATUS.HEADER VALUE : HEADER VALUE FINISHED i[%d] \n", i);
 		    status = STATUS.CHECK_NEXT_LINE;
 		    nextOffsetIdx += 1;
-		    offsets[nextOffsetIdx] = index + wirthParsedData.consumedBytes(); //the end of header value exclusive
+		    offsets[nextOffsetIdx] = index + consumedBytes; //the end of header value exclusive
 		    break;
 		}
 		default: {
@@ -204,9 +215,18 @@ public class WirthHttpParser{
 
 	       
 	}
-	    
-	return new WirthParsedData(status, nextOffsetIdx, index + wirthParsedData.consumedBytes(), offsets);
+	consumedBytes += index;
+	return status;
 	
+    }
+    public int[] getOffsetTable(){
+	return this.offsets;
+    }
+    public int getNextOffsetIdx(){
+	return this.nextOffsetIdx;
+    }
+    public int getConsumedBytes(){
+	return this.consumedBytes;
     }
    
 }
