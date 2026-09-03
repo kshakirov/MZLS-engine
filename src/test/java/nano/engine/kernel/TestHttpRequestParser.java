@@ -1,5 +1,6 @@
 package nano.engine.kernel;
 import nano.engine.kernel.HttpRequestParser;
+import nano.engine.kernel.HttpRequestParser.ParserState;;
 
 public class TestHttpRequestParser{
     private static byte[] standardGet = (
@@ -11,8 +12,16 @@ public class TestHttpRequestParser{
     public static void main(String[] args){
 	
 	var parser = new HttpRequestParser();
-	var parsedData = parser.parse(standardGet);
-	System.out.println(parsedData);
+	//	var parsedData = parser.parse(standardGet);
+	var payload = standardGet;
+	for (int i =0; i< payload.length ; i++){
+	    var streamedResult = parser.parse(new byte[]{payload[i]});
+	    System.out.printf("Status %s\n", streamedResult);
+	    if(streamedResult == ParserState.FINISH){
+		break;
+	    }
+	}
+	System.out.println(parser);
 
     }
 }

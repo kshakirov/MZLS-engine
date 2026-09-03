@@ -14,8 +14,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 import nano.engine.kernel.WirthHttpParser;
-import nano.engine.kernel.HttpRequestParser.ParsedData;
+import nano.engine.kernel.HttpRequestParser.ParserState;
 
 public class TestSocketServer {
 
@@ -91,8 +92,8 @@ public class TestSocketServer {
 		    inBuf.clear();
 
 		    //		    var offsetsTable = wirthParser.parse(bytes);
-		    ParsedData parsedData = this.httpRequestParser.parse(bytes);
-		    if(parsedData.offsetTable() != null){
+		    ParserState parserState = this.httpRequestParser.parse(bytes);
+		    if(parserState == ParserState.FINISH){
 
 			channel.write(ByteBuffer.wrap(response));
 
