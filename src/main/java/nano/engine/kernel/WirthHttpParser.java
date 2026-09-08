@@ -1,14 +1,5 @@
 package nano.engine.kernel;
 
-import java.io.ByteArrayOutputStream;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Stream;
-
-
-
-import java.nio.ByteBuffer;
 
 public class WirthHttpParser{
     public enum STATUS {
@@ -36,15 +27,36 @@ public class WirthHttpParser{
 	public String value() {return value;}
 	public byte[] bValue() {return value.getBytes();}
     }
+    public enum BodyType {
+	FIXED_CONTENT("Content-Length".getBytes()),
+	CHUNK_CONTENT("Transfer-Encoding".getBytes()),
+	NONE("".getBytes());
+	BodyType(byte[] value){this.value = value;}
+	private final byte[] value;
+	public byte[] bValue(){return this.value;}
+    }
+
     private STATUS status;
     private  int nextOffsetIdx;
     private int consumedBytes;
-    private int[] offsets; 
+    private int[] offsets;
+    private BodyType bodyType;
+    private int fixed_content_match;
+    private int fixed_content_value;
+    private int chunk_content_match;
+    private long content_length;
     public WirthHttpParser (){
 	this.status = STATUS.REQ_METHOD;
 	this.nextOffsetIdx =0;
 	this.consumedBytes =0;
 	this.offsets = new int[64];
+	this.bodyType = BodyType.NONE;
+	this.fixed_content_match=0;
+	this.chunk_content_match=0;
+	this.fixed_content_value=0;
+	this.content_length = 0;
+
+
     }
   
     
@@ -148,7 +160,28 @@ public class WirthHttpParser{
 		}
 		default: {
 		    //for the time being
-		    
+
+		    if(payload[index] == BodyType.FIXED_CONTENT.bValue()[fixed_content_match]){
+
+			System.out.println("header name " + payload[index] + " match is " + fixed_content_match);
+			fixed_content_match += 1;
+			if(fixed_content_match == 14){
+			    this.bodyType = BodyType.FIXED_CONTENT;
+			}
+		    }else{
+			fixed_content_match = 0;
+		    }
+
+		    if(payload[index] == BodyType.CHUNK_CONTENT.bValue()[chunk_content_match]){
+
+			System.out.println("header name " + payload[index] + " match is " + chunk_content_match);
+			chunk_content_match += 1;
+			if(chunk_content_match == 17){
+			    this.bodyType = BodyType.CHUNK_CONTENT;
+			}
+		    }else{
+			chunk_content_match = 0;
+		    }
 
 		    break;
 		}
@@ -187,7 +220,9 @@ public class WirthHttpParser{
 		}
 		default: {
 		    //for the time being
-
+		    if(this.bodyType==BodyType.FIXED_CONTENT){
+			content_length = content_length * 10 + (payload[index] - '0');
+		    }
 		    
 		    break;
 		}
@@ -200,13 +235,13 @@ public class WirthHttpParser{
 
 	    case STATUS.FINISHED: {
 		//		console.printf("STATUS.FINISH: reading \n");
-		break;
-		//return offsets;
+		return status;
 	    }
 
 	    case ERROR:{
 		//		console.printf("STATUS.ERROR: reading \n");
-		break; //только чтобы не подсвечило пока статус как ошибка
+
+		return status;
 	    }
 	    }
 	
@@ -225,6 +260,12 @@ public class WirthHttpParser{
     }
     public int getConsumedBytes(){
 	return this.consumedBytes;
+    };
+    public long getContentLength(){
+	return this.content_length;
+    }
+    public BodyType getBodyType(){
+	return this.bodyType;
     }
    
 }

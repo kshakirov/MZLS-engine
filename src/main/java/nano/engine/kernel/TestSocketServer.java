@@ -1,27 +1,25 @@
 package nano.engine.kernel;
 
-import java.io.Console;
+
 import java.io.IOException;
-import java.net.ServerSocket;
+
 import java.net.StandardProtocolFamily;
 import java.net.UnixDomainSocketAddress;
 import java.nio.ByteBuffer;
 import java.io.ByteArrayOutputStream;
-import java.nio.channels.Channel;
+
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import nano.engine.kernel.WirthHttpParser;
 import nano.engine.kernel.HttpRequestParser.ParserState;
 
 public class TestSocketServer {
 
     private Path path;
-    //private Console console ;
+
 
       
     public TestSocketServer(String path){
@@ -33,8 +31,6 @@ public class TestSocketServer {
 	}catch(IOException exception){
 	    
 	}
-	//this.console = System.console();
-
 
     }
     public void run()throws IOException {

@@ -23,6 +23,7 @@ public  class TestWirthHttpParser{
 				      "Accept: */*\r\n" +
 				      "X-Real-IP: 192.168.1.100\r\n" +
 				      "Connection: keep-alive\r\n" +
+				      "Content-Length: 64\r\n" +
 				      "\r\n"
 				      ).getBytes(java.nio.charset.StandardCharsets.UTF_8);
     public static void dumpOffsets(byte[] payload, int[] offsets) {
@@ -60,12 +61,12 @@ public  class TestWirthHttpParser{
 
 	var streamedParser = new WirthHttpParser();
 	var wholeParser = new WirthHttpParser();
-	var wholeResult = wholeParser.parse(standardGet);
+	var wholeResult = wholeParser.parse(heavyGet);
 	var streamedResult  = STATUS.REQ_METHOD;
-	var payload = standardGet;
+	var payload = heavyGet;
 	for (int i =0; i< payload.length ; i++){
 	    streamedResult =  streamedParser.parse(new byte[]{payload[i]});
-	    System.out.printf("consumedBytes %d nextOffsetIds %d Status %s\n", streamedParser.getConsumedBytes(), streamedParser.getNextOffsetIdx(), streamedResult);
+	    //System.out.printf("consumedBytes %d nextOffsetIds %d Status %s\n", streamedParser.getConsumedBytes(), streamedParser.getNextOffsetIdx(), streamedResult);
 	}
 	assert(wholeParser.getOffsetTable() != streamedParser.getOffsetTable());
 	assert(wholeParser.getConsumedBytes() == streamedParser.getConsumedBytes());
