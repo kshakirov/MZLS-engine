@@ -32,7 +32,7 @@ public class TestHttpRequestParser{
 		break;
 	    }
 	}
-	
+
 	System.out.println(parser.getCotentLength());
 
     }
