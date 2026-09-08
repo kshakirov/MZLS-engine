@@ -29,7 +29,7 @@ public class HttpRequestParser {
     private int consumedBytes; //index
     private WirthHttpParser.STATUS headerStatus;
 
-    private WirthParsedData wirthParsedData;
+    
     //    private 
     public HttpRequestParser(){
 	this.wirthHttpParser = new WirthHttpParser();
@@ -39,10 +39,6 @@ public class HttpRequestParser {
 	status =STATUS.REQ_METHOD;
 	consumedBytes =0;
 	headerStatus = STATUS.REQ_METHOD;
-	this.wirthParsedData = new WirthParsedData(headerStatus, nextOffsetIdx, consumedBytes, offsetTable);
-
-	
-
     };
 
     public ParserState  parse(byte[] fragment){
@@ -54,6 +50,8 @@ public class HttpRequestParser {
 	if(headerStatus!= STATUS.ERROR && headerStatus != STATUS.FINISHED){
 
 	    return ParserState.NEEDS_MORE_DATA;
+	}else if(headerStatus== STATUS.ERROR){
+	    return ParserState.ERROR;
 	}
 	    
 	

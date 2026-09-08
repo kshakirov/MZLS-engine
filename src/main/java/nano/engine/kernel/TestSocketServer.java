@@ -63,44 +63,31 @@ public class TestSocketServer {
 	public MyConnectionHandler(SocketChannel channel, int buffSize){
 	    this.channel = channel;
 	    this.buffSize = buffSize;
-	    this.wirthParser =new WirthHttpParser();
 	    this.httpRequestParser = new HttpRequestParser();
 
 	}
 	public void run() {
 	    //temporally ofcourse
-	    byte[] response = (
-			       "HTTP/1.1 200 OK\r\n" +
-			       "Content-Type: text/plain\r\n" +
-			       "Content-Length: 2\r\n" +
-			       "Connection: close\r\n" +
-			       "\r\n" +
-			       "OK"
-			       ).getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+	    byte[] http200 = ("HTTP/1.1 200 OK\r\n\r\n").getBytes();
+	    byte[] http500 = ("HTTP/1.1 500 Internal Server Error\r\n\r\n").getBytes();
 	    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 	    ByteBuffer inBuf = ByteBuffer.allocate(this.buffSize);
 	    int numBytes;
-	    long threadId = Thread.currentThread().getId();
-
 	    try {
 		while ((numBytes = channel.read(inBuf))  != -1) {
 		    byte[] bytes = new byte[numBytes];
 		    inBuf.flip(); 
 		    inBuf.get(bytes);
 		    outputStream.writeBytes(bytes);
-
 		    inBuf.clear();
-
-		    //		    var offsetsTable = wirthParser.parse(bytes);
 		    ParserState parserState = this.httpRequestParser.parse(bytes);
 		    if(parserState == ParserState.FINISH){
-
-			channel.write(ByteBuffer.wrap(response));
-
+			channel.write(ByteBuffer.wrap(http200));
 			channel.close();
 			break;
-		    }else{
-
+		    }else if(parserState == ParserState.ERROR){
+			channel.write(ByteBuffer.wrap(http500));
+			channel.close();
 			break;
 		    }
 		    

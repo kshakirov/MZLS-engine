@@ -47,11 +47,9 @@ public class WirthHttpParser{
 	this.offsets = new int[64];
     }
   
-    public record WirthParsedData(STATUS status, int nextOffsetIdx, int consumedBytes, int[] offsetsTable){};
+    
+
     public STATUS  parse(byte[] payload){
-	//	var payload = stream.toByteArray();
-	//	var status = wirthParsedData.status();
-	//var nextOffsetIdx = wirthParsedData.nextOffsetIdx();
 	var index = 0;
 	
 
