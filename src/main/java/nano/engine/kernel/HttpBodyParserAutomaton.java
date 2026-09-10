@@ -1,0 +1,43 @@
+package nano.engine.kernel;
+
+import java.awt.Taskbar.State;
+
+public class HttpBodyParserAutomaton {
+
+    enum State {
+	PARSE_HEADERS,
+	EXPECT_CHUNK_SIZE,
+	READ_CHUNK_DATA,
+	SUCCESS,
+	ERROR,
+	EXPECT_CHUNK_CR,
+	EXPECT_CHUNK_LF,
+	READ_CHUNK_CR,
+	READ_CHUNK_LF;
+    }
+
+    enum NetworkInput{
+	CHUNK_SIZE_GREATER_ZERO ,
+	CHUNK_SIZE_ZERO,
+	DATA_ARRIVED,
+	MALFORMED,
+	READING_FIXED_DATA,
+	HEADERS_PARSED_EMPTY,
+	HEADERS_PARSED_CONTENT_LENGTH,
+	HEADERS_PARSED_CHUNKED,
+	CHUNK_DATA_FLOW,
+	CHUNK_DATA_EMPTY,
+	CRLF_VALID,
+	CR_AFTER_SIZE_VALID,
+	CR_AFTER_DATA_VALID,
+	CR_AFTER_ZERO_VALID,
+	LF_AFTER_SIZE_VALID,
+	LF_AFTER_DATA_VALID,
+	LF_AFTER_ZERO_VALID,
+	TIMEOUT;
+    }
+
+    private State nextState(State currentState, NetworkInput currentInput, int currentValue){
+	return State.SUCCESS;
+    }
+}
