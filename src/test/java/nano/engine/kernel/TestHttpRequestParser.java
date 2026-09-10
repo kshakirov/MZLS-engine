@@ -27,13 +27,14 @@ public class TestHttpRequestParser{
 	var payload = heavyGet;
 	for (int i =0; i< payload.length ; i++){
 	    var streamedResult = parser.parse(new byte[]{payload[i]});
-	    System.out.printf("Status %s\n", streamedResult);
+	
 	    if(streamedResult == ParserState.FINISH){
 		break;
 	    }
 	}
 
-	System.out.println(parser.getCotentLength());
+	//System.out.println(parser.getCotentLength());
+	assert(parser.getCotentLength()==64);
 
     }
 }

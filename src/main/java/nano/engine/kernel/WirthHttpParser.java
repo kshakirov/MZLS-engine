@@ -45,6 +45,8 @@ public class WirthHttpParser{
     private int fixed_content_value;
     private int chunk_content_match;
     private long content_length;
+    private final int FIXED_CONTENT_LENGTH=14;
+    private final int  CHUNK_CONTENT_LENGTH= 17;
     public WirthHttpParser (){
 	this.status = STATUS.REQ_METHOD;
 	this.nextOffsetIdx =0;
@@ -163,9 +165,8 @@ public class WirthHttpParser{
 
 		    if(payload[index] == BodyType.FIXED_CONTENT.bValue()[fixed_content_match]){
 
-			System.out.println("header name " + payload[index] + " match is " + fixed_content_match);
 			fixed_content_match += 1;
-			if(fixed_content_match == 14){
+			if(fixed_content_match == FIXED_CONTENT_LENGTH){
 			    this.bodyType = BodyType.FIXED_CONTENT;
 			}
 		    }else{
@@ -174,9 +175,8 @@ public class WirthHttpParser{
 
 		    if(payload[index] == BodyType.CHUNK_CONTENT.bValue()[chunk_content_match]){
 
-			System.out.println("header name " + payload[index] + " match is " + chunk_content_match);
 			chunk_content_match += 1;
-			if(chunk_content_match == 17){
+			if(chunk_content_match == CHUNK_CONTENT_LENGTH){
 			    this.bodyType = BodyType.CHUNK_CONTENT;
 			}
 		    }else{
@@ -220,7 +220,7 @@ public class WirthHttpParser{
 		}
 		default: {
 		    //for the time being
-		    if(this.bodyType==BodyType.FIXED_CONTENT){
+		    if(this.bodyType==BodyType.FIXED_CONTENT  && payload[index] > 47 && payload[index] <58){
 			content_length = content_length * 10 + (payload[index] - '0');
 		    }
 		    
