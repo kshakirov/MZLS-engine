@@ -101,9 +101,10 @@ public class HttpRequestParser {
 	if(phase == Phase.BODY){
 	    automaton.resetBufferPointer();
 	    automaton.resetArenaPointer();
-	    var registers = automaton.runEngine(fragment);
-	    for(int r:registers){
-		System.out.println(r);
+	    var arena = automaton.runEngine(fragment);
+	    for(int a:arena){
+		if(a > 0)
+		    System.out.println(a);
 	    }
 	    var state = automaton.getStatus();
 	    if(state!= State.SUCCESS && state!= State.ERROR){
