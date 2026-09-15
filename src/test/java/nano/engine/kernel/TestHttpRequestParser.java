@@ -20,21 +20,27 @@ public class TestHttpRequestParser{
 				      "Content-Length: 64\r\n" +
 				      "\r\n"
 				      ).getBytes(java.nio.charset.StandardCharsets.UTF_8);
+    private static String postRequest = "POST /api/v1/data HTTP/1.1\r\n" +
+                     "Host: localhost\r\n" +
+                     "Content-Type: application/json\r\n" +
+                     "Content-Length: 7\r\n" +
+                     "\r\n" +
+                     "{\"a\":1}";
     public static void main(String[] args){
 
 	var parser = new HttpRequestParser();
 	//	var parsedData = parser.parse(standardGet);
-	var payload = heavyGet;
+	var payload = postRequest.getBytes();
 	for (int i =0; i< payload.length ; i++){
 	    var streamedResult = parser.parse(new byte[]{payload[i]});
-	
+	    System.out.println(streamedResult);
 	    if(streamedResult == ParserState.FINISH){
 		break;
 	    }
 	}
 
 	//System.out.println(parser.getCotentLength());
-	assert(parser.getCotentLength()==64);
+	//assert(parser.getCotentLength()==64);
 
     }
 }

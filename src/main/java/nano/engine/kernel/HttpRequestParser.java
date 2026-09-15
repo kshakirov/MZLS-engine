@@ -1,6 +1,14 @@
 package nano.engine.kernel;
 import nano.engine.kernel.WirthHttpParser.STATUS;
-import nano.engine.kernel.WirthHttpParser.BodyType;;
+
+import nano.engine.kernel.WirthHttpParser.BodyType;
+
+
+
+
+import nano.engine.kernel.HttpBodyParserAutomaton;
+import nano.engine.kernel.HttpBodyParserAutomaton.State;
+import nano.engine.kernel.HttpBodyParserAutomaton.NetworkInput;
 
 public class HttpRequestParser {
     public enum Phase {
@@ -14,6 +22,7 @@ public class HttpRequestParser {
 	FINISH,
 	ERROR,
 	NEEDS_MORE_DATA
+
     }
 
 
@@ -24,8 +33,10 @@ public class HttpRequestParser {
     private int nextOffsetIdx;
     private STATUS status;
     private int consumedBytes; //index
-    private long contentLength;
+    private int contentLength;
     private WirthHttpParser.STATUS headerStatus;
+    private HttpBodyParserAutomaton automaton;
+    private Phase phase;
 
     
     //    private 
@@ -33,11 +44,21 @@ public class HttpRequestParser {
 	this.wirthHttpParser = new WirthHttpParser();
 	nextOffsetIdx=0;
 	//	offsetTable = new int[64];
-	arena = new byte[1028];
+	arena = new byte[64 * 1024];
 	status =STATUS.REQ_METHOD;
 	consumedBytes =0;
 	contentLength =0;
 	headerStatus = STATUS.REQ_METHOD;
+	phase = Phase.HEADER;
+	this.automaton = new HttpBodyParserAutomaton(State.PARSE_HEADERS,
+						     NetworkInput.HEADERS_PARSED_CONTENT_LENGTH,
+						     contentLength,
+						     null,
+						     consumedBytes,
+						     arena
+														 
+						     );
+	
     };
 
     public long getCotentLength(){
@@ -49,20 +70,45 @@ public class HttpRequestParser {
 	//somewhere to accumulate the whole body
 
 
-	
-	headerStatus = wirthHttpParser.parse(fragment);
-	if(headerStatus!= STATUS.ERROR && headerStatus != STATUS.FINISHED){
+	if(phase == Phase.HEADER){
+	    headerStatus = wirthHttpParser.parse(fragment);
+	    if(headerStatus!= STATUS.ERROR && headerStatus != STATUS.FINISHED){
 
-	    return ParserState.NEEDS_MORE_DATA;
-	}else if(headerStatus== STATUS.ERROR){
-	    return ParserState.ERROR;
+		return ParserState.NEEDS_MORE_DATA;
+	    }else if(headerStatus== STATUS.ERROR){
+		return ParserState.ERROR;
+	    }
+	    if(headerStatus==STATUS.FINISHED && phase == Phase.HEADER){
+		if(wirthHttpParser.getBodyType()== BodyType.FIXED_CONTENT){
+		    contentLength = wirthHttpParser.getContentLength();
+		    byte[] arena = new byte[contentLength];
+		    automaton = new HttpBodyParserAutomaton(State.PARSE_HEADERS,
+								 NetworkInput.HEADERS_PARSED_CONTENT_LENGTH,
+								 contentLength,
+								 fragment,
+								 0,
+								 arena
+														 
+								 );
+	    
+		    phase = Phase.BODY;   
+		}
+		this.offsetTable = wirthHttpParser.getOffsetTable();
+	    }
 	}
 	    
-	this.offsetTable = wirthHttpParser.getOffsetTable();
-	if(wirthHttpParser.getBodyType()== BodyType.FIXED_CONTENT){
-	    contentLength = wirthHttpParser.getContentLength();
 
+	if(phase == Phase.BODY){
+	    HttpBodyParserAutomaton.State state = automaton.runEngine(fragment);
+	    if(state!= State.SUCCESS && state!= State.ERROR){
+		
+		return ParserState.NEEDS_MORE_DATA;
+		
+	    }
+	    System.out.println(state);
 	}
+
+    
 	
 	return ParserState.FINISH;
     }

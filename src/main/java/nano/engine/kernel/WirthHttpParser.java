@@ -44,7 +44,7 @@ public class WirthHttpParser{
     private int fixed_content_match;
     private int fixed_content_value;
     private int chunk_content_match;
-    private long content_length;
+    private int content_length;
     private final int FIXED_CONTENT_LENGTH=14;
     private final int  CHUNK_CONTENT_LENGTH= 17;
     public WirthHttpParser (){
@@ -261,7 +261,7 @@ public class WirthHttpParser{
     public int getConsumedBytes(){
 	return this.consumedBytes;
     };
-    public long getContentLength(){
+    public int getContentLength(){
 	return this.content_length;
     }
     public BodyType getBodyType(){

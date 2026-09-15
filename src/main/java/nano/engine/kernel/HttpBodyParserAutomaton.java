@@ -1,10 +1,10 @@
 package nano.engine.kernel;
 
-import java.awt.Taskbar.State;
+
 
 public class HttpBodyParserAutomaton {
 
-    enum State {
+    public enum  State {
 	PARSE_HEADERS,
 	EXPECT_CHUNK_SIZE,
 	READ_CHUNK_DATA,
@@ -16,7 +16,7 @@ public class HttpBodyParserAutomaton {
 	READ_CHUNK_LF;
     }
 
-    enum NetworkInput{
+    public enum NetworkInput{
 	CHUNK_SIZE_GREATER_ZERO ,
 	CHUNK_SIZE_ZERO,
 	DATA_ARRIVED,
@@ -36,8 +36,118 @@ public class HttpBodyParserAutomaton {
 	LF_AFTER_ZERO_VALID,
 	TIMEOUT;
     }
+    private State currentState;
+    private NetworkInput currentInput;
+    private int currentValue;
+    private byte[] buffer;
+    private int bufferPtr;
+    private byte[] arena;
+    private int arenaPtr;
+    private final int[] registers = new int[3];
 
-    private State nextState(State currentState, NetworkInput currentInput, int currentValue){
-	return State.SUCCESS;
+    public HttpBodyParserAutomaton(State state, NetworkInput input, int value, byte[] buf, int bufPtr, byte[] arena){
+	currentState = State.PARSE_HEADERS;
+	currentInput = input;
+	currentValue = value;
+	buffer = buf;
+	bufferPtr = bufPtr;
+	this.arena = arena;
     }
+    
+    private void nextState(){
+	switch(currentState){
+	case State.PARSE_HEADERS:{
+	    if (currentInput == NetworkInput.HEADERS_PARSED_EMPTY)
+		{
+		    currentState = State.SUCCESS;
+		    return;
+		}
+	    else if (currentInput == NetworkInput.HEADERS_PARSED_CONTENT_LENGTH){
+
+		currentState = State.READ_CHUNK_DATA;
+		currentInput = NetworkInput.READING_FIXED_DATA;
+		return;
+		 
+	    }
+	    break;
+	}
+	case State.READ_CHUNK_DATA: {
+	    if (currentInput == NetworkInput.READING_FIXED_DATA && currentValue > 0){
+
+		currentState =  State.READ_CHUNK_DATA;
+		return;
+	    }
+	    else if (currentInput == NetworkInput.READING_FIXED_DATA && currentValue ==0){
+
+		currentState =  State.SUCCESS;
+		return;
+	    }
+	    break;
+	}
+        default: {
+	    
+	}
+	}
+    }
+    public State runEngine(byte[]fragment){
+	this.buffer= fragment;
+	System.out.println(fragment);
+	int counter = 0;
+	while(counter >= 0) {
+	    switch(currentState){
+ 	    case State.SUCCESS:{
+		return currentState;
+	    }
+	    case State.ERROR:{
+		return currentState;
+	    }
+	    case State.READ_CHUNK_DATA :{
+		var regs = readChunkFixedLength(currentValue, buffer, bufferPtr, arena ,arenaPtr);
+		currentState = State.READ_CHUNK_DATA;
+		currentInput = NetworkInput.READING_FIXED_DATA;
+		bufferPtr = regs[1];
+		arenaPtr = regs[2];
+		System.out.println("runEnginge: state is READ CHUNK " + currentState + " input is " + currentInput + " current value " + currentValue + " buffer ptr " + bufferPtr);
+		System.out.println(regs[0]);
+		if(regs[0] > 0){
+		    currentValue =  regs[0];
+		    return currentState;
+		}else{
+		    currentValue = 0;
+		}
+	    }
+	    default: {
+		//return State.ERROR;
+		System.out.println("runEnginge: Nothing yet found state is " + currentState + " input is " + currentInput);
+	    }
+	      
+	    }
+	    nextState();
+	}
+	return currentState;
+    }
+    private int[] readChunkFixedLength(int value, byte[] buf , int bufPtr, byte[] a, int aPtr){
+	if(bufPtr < buf.length){
+	    while (bufPtr < buf.length && value >  0){
+		a[aPtr] = buf[bufPtr];
+		bufPtr += 1;
+		aPtr +=1;
+		value -=1;
+	    }
+	    registers[0] = value;
+	    registers[1] = bufPtr;
+	    registers[2] = aPtr;
+	    return registers;
+
+
+	}else {
+	    registers[0] = value;
+	    registers[1] = bufPtr;
+	    registers[2] = aPtr;
+	    return registers;
+
+	    
+	}
+    }
+
 }
