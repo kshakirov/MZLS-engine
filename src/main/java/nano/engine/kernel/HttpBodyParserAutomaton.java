@@ -89,17 +89,23 @@ public class HttpBodyParserAutomaton {
 	}
 	}
     }
-    public State runEngine(byte[]fragment){
+    public State getStatus(){
+	return this.currentState;
+    }
+    public void resetBufferPointer(){
+	this.bufferPtr=0;
+    }
+    public int[] runEngine(byte[]fragment){
 	this.buffer= fragment;
 	System.out.println(fragment);
 	int counter = 0;
 	while(counter >= 0) {
 	    switch(currentState){
  	    case State.SUCCESS:{
-		return currentState;
+		return registers;
 	    }
 	    case State.ERROR:{
-		return currentState;
+		return registers;
 	    }
 	    case State.READ_CHUNK_DATA :{
 		var regs = readChunkFixedLength(currentValue, buffer, bufferPtr, arena ,arenaPtr);
@@ -107,11 +113,10 @@ public class HttpBodyParserAutomaton {
 		currentInput = NetworkInput.READING_FIXED_DATA;
 		bufferPtr = regs[1];
 		arenaPtr = regs[2];
-		System.out.println("runEnginge: state is READ CHUNK " + currentState + " input is " + currentInput + " current value " + currentValue + " buffer ptr " + bufferPtr);
-		System.out.println(regs[0]);
+		System.out.println("runEnginge: state is READ CHUNK, bufferPtr " + bufferPtr + " current value " +  currentValue + " bufferLen " + buffer.length + "  " + regs[0] );
 		if(regs[0] > 0){
 		    currentValue =  regs[0];
-		    return currentState;
+		    return registers;
 		}else{
 		    currentValue = 0;
 		}
@@ -124,15 +129,18 @@ public class HttpBodyParserAutomaton {
 	    }
 	    nextState();
 	}
-	return currentState;
+	return registers;
     }
     private int[] readChunkFixedLength(int value, byte[] buf , int bufPtr, byte[] a, int aPtr){
-	if(bufPtr < buf.length){
+	if(bufPtr <= buf.length){
 	    while (bufPtr < buf.length && value >  0){
+		if(bufPtr == -1)
+		    bufPtr = 0;
 		a[aPtr] = buf[bufPtr];
 		bufPtr += 1;
 		aPtr +=1;
 		value -=1;
+		System.out.println("HEER");
 	    }
 	    registers[0] = value;
 	    registers[1] = bufPtr;

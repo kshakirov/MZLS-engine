@@ -99,7 +99,12 @@ public class HttpRequestParser {
 	    
 
 	if(phase == Phase.BODY){
-	    HttpBodyParserAutomaton.State state = automaton.runEngine(fragment);
+	    automaton.resetBufferPointer();
+	    var registers = automaton.runEngine(fragment);
+	    for(int r:registers){
+		System.out.println(r);
+	    }
+	    var state = automaton.getStatus();
 	    if(state!= State.SUCCESS && state!= State.ERROR){
 		
 		return ParserState.NEEDS_MORE_DATA;
