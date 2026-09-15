@@ -111,7 +111,7 @@ public class HttpBodyParserAutomaton {
 		return arena;
 	    }
 	    case State.READ_CHUNK_DATA :{
-		System.out.println("runEnginge: state is READ CHUNK arena ptr "+ arenaPtr + " buffer ptr " + bufferPtr );
+		//System.out.println("runEnginge: state is READ CHUNK arena ptr "+ arenaPtr + " buffer ptr " + bufferPtr );
 		var regs = readChunkFixedLength(currentValue, fragment, bufferPtr, arena ,arenaPtr);
 		currentState = State.READ_CHUNK_DATA;
 		currentInput = NetworkInput.READING_FIXED_DATA;
@@ -120,7 +120,7 @@ public class HttpBodyParserAutomaton {
 		
 		arenaPtr = regs[2];
 
-		System.out.println("runEnginge: state is READ CHUNK, bufferPtr " + bufferPtr + " current value " +  currentValue + " bufferLen " + fragment.length + "  " + regs[0] + " arena ptr "+ arenaPtr);
+		//System.out.println("runEnginge: state is READ CHUNK, bufferPtr " + bufferPtr + " current value " +  currentValue + " bufferLen " + fragment.length + "  " + regs[0] + " arena ptr "+ arenaPtr);
 		if(regs[0] > 0){
 		    currentValue =  regs[0];
 		    return arena;
@@ -130,7 +130,7 @@ public class HttpBodyParserAutomaton {
 	    }
 	    default: {
 		//return State.ERROR;
-		System.out.println("runEnginge: Nothing yet found state is " + currentState + " input is " + currentInput);
+		//System.out.println("runEnginge: Nothing yet found state is " + currentState + " input is " + currentInput);
 	    }
 	      
 	    }
@@ -147,7 +147,7 @@ public class HttpBodyParserAutomaton {
 		bufPtr += 1;
 		aPtr +=1;
 		value -=1;
-		System.out.println("HEER");
+	
 	    }
 	    registers[0] = value;
 	    registers[1] = bufPtr;
