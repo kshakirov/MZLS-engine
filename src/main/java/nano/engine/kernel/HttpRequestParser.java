@@ -100,6 +100,7 @@ public class HttpRequestParser {
 
 	if(phase == Phase.BODY){
 	    automaton.resetBufferPointer();
+	    automaton.resetArenaPointer();
 	    var registers = automaton.runEngine(fragment);
 	    for(int r:registers){
 		System.out.println(r);

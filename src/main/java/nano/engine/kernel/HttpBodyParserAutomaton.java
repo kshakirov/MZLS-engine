@@ -95,6 +95,9 @@ public class HttpBodyParserAutomaton {
     public void resetBufferPointer(){
 	this.bufferPtr=0;
     }
+    public void resetArenaPointer(){
+	this.arenaPtr=0;
+    }
     public int[] runEngine(byte[]fragment){
 	//	this.fragment= fragment;
 	System.out.println(fragment);
@@ -108,12 +111,16 @@ public class HttpBodyParserAutomaton {
 		return registers;
 	    }
 	    case State.READ_CHUNK_DATA :{
+		System.out.println("runEnginge: state is READ CHUNK arena ptr "+ arenaPtr + " buffer ptr " + bufferPtr );
 		var regs = readChunkFixedLength(currentValue, fragment, bufferPtr, arena ,arenaPtr);
 		currentState = State.READ_CHUNK_DATA;
 		currentInput = NetworkInput.READING_FIXED_DATA;
 		bufferPtr = regs[1];
+		arena[arenaPtr] = fragment[arenaPtr];
+		
 		arenaPtr = regs[2];
-		System.out.println("runEnginge: state is READ CHUNK, bufferPtr " + bufferPtr + " current value " +  currentValue + " bufferLen " + fragment.length + "  " + regs[0] );
+
+		System.out.println("runEnginge: state is READ CHUNK, bufferPtr " + bufferPtr + " current value " +  currentValue + " bufferLen " + fragment.length + "  " + regs[0] + " arena ptr "+ arenaPtr);
 		if(regs[0] > 0){
 		    currentValue =  regs[0];
 		    return registers;
