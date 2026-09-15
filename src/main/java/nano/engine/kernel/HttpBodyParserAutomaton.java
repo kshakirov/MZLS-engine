@@ -39,7 +39,7 @@ public class HttpBodyParserAutomaton {
     private State currentState;
     private NetworkInput currentInput;
     private int currentValue;
-    private byte[] buffer;
+    //    private byte[] fragment;
     private int bufferPtr;
     private byte[] arena;
     private int arenaPtr;
@@ -49,7 +49,7 @@ public class HttpBodyParserAutomaton {
 	currentState = State.PARSE_HEADERS;
 	currentInput = input;
 	currentValue = value;
-	buffer = buf;
+	//	fragment = buf;
 	bufferPtr = bufPtr;
 	this.arena = arena;
     }
@@ -96,7 +96,7 @@ public class HttpBodyParserAutomaton {
 	this.bufferPtr=0;
     }
     public int[] runEngine(byte[]fragment){
-	this.buffer= fragment;
+	//	this.fragment= fragment;
 	System.out.println(fragment);
 	int counter = 0;
 	while(counter >= 0) {
@@ -108,12 +108,12 @@ public class HttpBodyParserAutomaton {
 		return registers;
 	    }
 	    case State.READ_CHUNK_DATA :{
-		var regs = readChunkFixedLength(currentValue, buffer, bufferPtr, arena ,arenaPtr);
+		var regs = readChunkFixedLength(currentValue, fragment, bufferPtr, arena ,arenaPtr);
 		currentState = State.READ_CHUNK_DATA;
 		currentInput = NetworkInput.READING_FIXED_DATA;
 		bufferPtr = regs[1];
 		arenaPtr = regs[2];
-		System.out.println("runEnginge: state is READ CHUNK, bufferPtr " + bufferPtr + " current value " +  currentValue + " bufferLen " + buffer.length + "  " + regs[0] );
+		System.out.println("runEnginge: state is READ CHUNK, bufferPtr " + bufferPtr + " current value " +  currentValue + " bufferLen " + fragment.length + "  " + regs[0] );
 		if(regs[0] > 0){
 		    currentValue =  regs[0];
 		    return registers;
