@@ -33,7 +33,7 @@ public class TestHttpRequestParser{
 	var payload = postRequest.getBytes();
 	for (int i =0; i< payload.length ; i++){
 	    var streamedResult = parser.parse(new byte[]{payload[i]});
-	    System.out.println(streamedResult);
+	    //System.out.println(streamedResult);
 	    if(streamedResult == ParserState.FINISH){
 		break;
 	    }

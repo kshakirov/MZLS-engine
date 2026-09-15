@@ -100,7 +100,7 @@ public class HttpBodyParserAutomaton {
     }
     public byte[] runEngine(byte[]fragment){
 	//	this.fragment= fragment;
-	System.out.println(fragment);
+
 	int counter = 0;
 	while(counter >= 0) {
 	    switch(currentState){
