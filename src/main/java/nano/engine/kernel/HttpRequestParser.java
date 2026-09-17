@@ -27,11 +27,7 @@ public class HttpRequestParser {
 
 
     private WirthHttpParser wirthHttpParser;
-    private int[] offsetTable;
-    private byte[] buffer;
     private byte[] arena;
-    private int nextOffsetIdx;
-    private STATUS status;
     private int consumedBytes; //index
     private int contentLength;
     private WirthHttpParser.STATUS headerStatus;
@@ -42,10 +38,10 @@ public class HttpRequestParser {
     //    private 
     public HttpRequestParser(){
 	this.wirthHttpParser = new WirthHttpParser();
-	nextOffsetIdx=0;
+
 	//	offsetTable = new int[64];
-	arena = new byte[64 * 1024];
-	status =STATUS.REQ_METHOD;
+	arena = new byte[1024];
+
 	consumedBytes =0;
 	contentLength =0;
 	headerStatus = STATUS.REQ_METHOD;
@@ -93,7 +89,7 @@ public class HttpRequestParser {
 	    
 		    phase = Phase.BODY;   
 		}
-		this.offsetTable = wirthHttpParser.getOffsetTable();
+
 	    }
 	}
 	    
@@ -101,18 +97,13 @@ public class HttpRequestParser {
 	if(phase == Phase.BODY){
 	    automaton.resetBufferPointer();
 	    automaton.resetArenaPointer();
-	    var arena = automaton.runEngine(fragment);
-	    for(int a:arena){
-		if(a > 0)
-		    System.out.println(a);
-	    }
+	    this.arena = automaton.runEngine(fragment);
 	    var state = automaton.getStatus();
 	    if(state!= State.SUCCESS && state!= State.ERROR){
 		
 		return ParserState.NEEDS_MORE_DATA;
 		
 	    }
-	    System.out.println(state);
 	}
 
     
@@ -120,6 +111,8 @@ public class HttpRequestParser {
 	return ParserState.FINISH;
     }
 
-
+    public byte[] getArena(){
+	return this.arena;
+    }
 
 }

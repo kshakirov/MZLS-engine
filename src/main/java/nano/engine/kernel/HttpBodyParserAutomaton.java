@@ -98,6 +98,10 @@ public class HttpBodyParserAutomaton {
     public void resetArenaPointer(){
 	this.arenaPtr=0;
     }
+    public int getArenPtr(){
+	return this.arenaPtr;
+    }
+			   
     public byte[] runEngine(byte[]fragment){
 	//	this.fragment= fragment;
 

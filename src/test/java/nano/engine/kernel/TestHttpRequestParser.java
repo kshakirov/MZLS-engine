@@ -1,6 +1,8 @@
 package nano.engine.kernel;
 import nano.engine.kernel.HttpRequestParser;
-import nano.engine.kernel.HttpRequestParser.ParserState;;
+import nano.engine.kernel.HttpRequestParser.ParserState;
+import java.util.Arrays;
+
 
 public class TestHttpRequestParser{
     private static byte[] standardGet = (
@@ -20,27 +22,31 @@ public class TestHttpRequestParser{
 				      "Content-Length: 64\r\n" +
 				      "\r\n"
 				      ).getBytes(java.nio.charset.StandardCharsets.UTF_8);
-    private static String postRequest = "POST /api/v1/data HTTP/1.1\r\n" +
-                     "Host: localhost\r\n" +
-                     "Content-Type: application/json\r\n" +
-                     "Content-Length: 7\r\n" +
-                     "\r\n" +
-                     "{\"a\":1}";
+    private static byte[] postRequest = ("POST /api/v1/data HTTP/1.1\r\n" +
+					 "Host: localhost\r\n" +
+					 "Content-Type: application/json\r\n" +
+					 "Content-Length: 7\r\n" +
+					 "\r\n" +
+					 "{\"a\":1}").getBytes();
     public static void main(String[] args){
-
+	final int POSTREQUEST_SIZE = 8;
+	final byte[] POSTREQUEST_CONTENT = ("{\"a\":1}").getBytes();
 	var parser = new HttpRequestParser();
 	//	var parsedData = parser.parse(standardGet);
-	var payload = postRequest.getBytes();
+	var payload = postRequest;
+	var arena = new byte[POSTREQUEST_SIZE];
+	var byte_counter =0;
 	for (int i =0; i< payload.length ; i++){
 	    var streamedResult = parser.parse(new byte[]{payload[i]});
-	    //System.out.println(streamedResult);
+	    var a = parser.getArena();//we know in this case for sure all
+	    if(a != null &&  a[0] != (byte) 0x00){
+		assert(a[byte_counter] == POSTREQUEST_CONTENT[byte_counter]); 
+	    }
 	    if(streamedResult == ParserState.FINISH){
 		break;
 	    }
 	}
-
-	//System.out.println(parser.getCotentLength());
-	//assert(parser.getCotentLength()==64);
+	
 
     }
 }
