@@ -50,9 +50,11 @@ public class TestHttpRequestParser{
 	    var a = parser.getArena();//we know in this case for sure all
 	    if(a != null &&  a[0] != (byte) 0x00 ){
 		System.out.println(a[0]);
+		System.out.println(wholeArena[byte_counter]);
+		
 		System.out.println(POSTREQUEST_CONTENT[byte_counter]);
 		System.out.println(byte_counter);
-		//assert(a[0] == POSTREQUEST_CONTENT[byte_counter]);
+		assert(a[0] == POSTREQUEST_CONTENT[byte_counter]);
 		byte_counter += 1;
 
 	    }

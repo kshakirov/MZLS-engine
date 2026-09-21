@@ -10,6 +10,7 @@ public class WirthHttpParser{
 	HEADER_NAME(5),
 	HEADER_VALUE(6),
 	FINISHED   (7),
+	PREFINISHED (14),
 	CHECK_NEXT_LINE(9),
 	CHECK_CRLF(12),
 	ERROR(11);
@@ -70,7 +71,7 @@ public class WirthHttpParser{
 	
 	//var offsets = wirthParsedData.offsetsTable();// 127 method, uri,headers should be enough 
 	for (; index < payload.length; index++){
-	    // System.out.println("index is " + index + " consumded bytes " + consumedBytes);
+	    //System.out.println("index is " + index + " consumded bytes " + consumedBytes);
 	    switch(status){
 	    case REQ_METHOD: {
 		switch(payload[index])  {
@@ -150,6 +151,7 @@ public class WirthHttpParser{
 		case 0x0D :{
 		    status = STATUS.CHECK_CRLF;
 		    //		    console.printf("Going to CRLF\n");
+		    // System.out.println("before final " + consumedBytes);
 		    break;
 		}
 		case 0x3A:{
@@ -197,9 +199,10 @@ public class WirthHttpParser{
 
 		    
 		case 0x0A:{
-		    //		    console.printf("current %d\n", payload[i]);
-		    status = STATUS.FINISHED;
-		    index = index + 0;
+
+		    status = STATUS.PREFINISHED;
+		    //System.out.println("CRLF " + consumedBytes);
+		    //		    index = index + 1;
 		    break;
 		}
 		default:{
@@ -238,11 +241,18 @@ public class WirthHttpParser{
 		    break;	       
 	    }	
 
-		
+	    case STATUS.PREFINISHED: {
 
-	    case STATUS.FINISHED: {
-		//		console.printf("STATUS.FINISH: reading \n");
 		consumedBytes += index;
+		//	System.out.println("STATUS.FINISH: reading consumedBytes " + consumedBytes);
+		status = STATUS.FINISHED;
+		return status;
+	    }	
+		
+	    case STATUS.FINISHED: {
+
+		consumedBytes += index;
+		//	System.out.println("STATUS.FINISH: reading consumedBytes " + consumedBytes);
 		return status;
 	    }
 
@@ -257,6 +267,8 @@ public class WirthHttpParser{
 	       
 	}
 	consumedBytes += index;
+	//System.out.println("return " + consumedBytes);
+	
 	return status;
 	
     }

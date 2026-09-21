@@ -5,7 +5,6 @@ import nano.engine.kernel.WirthHttpParser.BodyType;
 import java.util.Arrays;
 
 
-
 import nano.engine.kernel.HttpBodyParserAutomaton.State;
 import nano.engine.kernel.HttpBodyParserAutomaton.NetworkInput;
 import nano.engine.kernel.HttpBodyParserAutomaton;
@@ -69,6 +68,11 @@ public class HttpRequestParser {
 
 	if(phase == Phase.HEADER){
 	    headerStatus = wirthHttpParser.parse(fragment);
+	    if(headerStatus==STATUS.PREFINISHED){
+		// know that this is
+		System.out.println("Prefinished" + fragment.length );
+		
+	    }
 	    if(headerStatus!= STATUS.ERROR && headerStatus != STATUS.FINISHED){
 
 		return ParserState.NEEDS_MORE_DATA;
@@ -78,6 +82,7 @@ public class HttpRequestParser {
 	    if(headerStatus==STATUS.FINISHED && phase == Phase.HEADER){
 		var consumedBytes = wirthHttpParser.getConsumedBytes();
 		System.out.println("c " + consumedBytes);
+		System.out.println("framgent length" + fragment.length );
 		if(wirthHttpParser.getBodyType()== BodyType.FIXED_CONTENT){
 		    contentLength = wirthHttpParser.getContentLength();
 		    byte[] arena = new byte[contentLength];
