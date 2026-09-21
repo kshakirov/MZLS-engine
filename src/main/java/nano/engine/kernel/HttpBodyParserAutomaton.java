@@ -50,6 +50,7 @@ public class HttpBodyParserAutomaton {
 	currentInput = input;
 	currentValue = value;
 	//	fragment = buf;
+	arenaPtr = 0;
 	bufferPtr = bufPtr;
 	this.arena = arena;
     }
@@ -115,14 +116,17 @@ public class HttpBodyParserAutomaton {
 		return arena;
 	    }
 	    case State.READ_CHUNK_DATA :{
-		//System.out.println("runEnginge: state is READ CHUNK arena ptr "+ arenaPtr + " buffer ptr " + bufferPtr );
+		//System.out.println("runEnginge: state is READ CHUNK arena ptr "+ arenaPtr + " buffer ptr " + bufferPtr + " current value " + currentValue  );
 		var regs = readChunkFixedLength(currentValue, fragment, bufferPtr, arena ,arenaPtr);
 		currentState = State.READ_CHUNK_DATA;
 		currentInput = NetworkInput.READING_FIXED_DATA;
 		bufferPtr = regs[1];
-		arena[arenaPtr] = fragment[arenaPtr];
+
+		//arena[arenaPtr] = fragment[arenaPtr];
+		//arenaPtr = regs[2];
+
 		
-		arenaPtr = regs[2];
+
 
 		//System.out.println("runEnginge: state is READ CHUNK, bufferPtr " + bufferPtr + " current value " +  currentValue + " bufferLen " + fragment.length + "  " + regs[0] + " arena ptr "+ arenaPtr);
 		if(regs[0] > 0){
@@ -143,16 +147,27 @@ public class HttpBodyParserAutomaton {
 	return arena;
     }
     private int[] readChunkFixedLength(int value, byte[] buf , int bufPtr, byte[] a, int aPtr){
-	if(bufPtr <= buf.length){
+	if(buf.length ==1){
+	    //System.out.println("in one while " + aPtr + " buf" + buf[bufPtr]);
+		a[0] = buf[0];
+		value -=1;
+		registers[0] = value;
+		registers[1] = 0;
+		registers[2] = 0;
+
+	
+	    return registers;
+	}
+	else if(bufPtr < buf.length){
 	    while (bufPtr < buf.length && value >  0){
-		if(bufPtr == -1)
-		    bufPtr = 0;
+		//		System.out.println("in while " + aPtr + " buf" + buf[bufPtr]);
 		a[aPtr] = buf[bufPtr];
 		bufPtr += 1;
 		aPtr +=1;
 		value -=1;
 	
 	    }
+
 	    registers[0] = value;
 	    registers[1] = bufPtr;
 	    registers[2] = aPtr;

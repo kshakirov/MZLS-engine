@@ -64,10 +64,15 @@ public class TestSocketServer {
 	}
 	public void run() {
 	    //temporally ofcourse
+	    byte [] r_prefix = ("HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nOK").getBytes();
+	    byte [] r_body = ("\r\n\r\n").getBytes();
+
 	    byte[] http200 = ("HTTP/1.1 200 OK\r\n\r\n").getBytes();
 	    byte[] http500 = ("HTTP/1.1 500 Internal Server Error\r\n\r\n").getBytes();
 	    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 	    ByteBuffer inBuf = ByteBuffer.allocate(this.buffSize);
+	    var buf = new byte[4];
+	    var box = new byte[1];
 	    int numBytes;
 	    try {
 		while ((numBytes = channel.read(inBuf))  != -1) {
@@ -78,7 +83,27 @@ public class TestSocketServer {
 		    inBuf.clear();
 		    ParserState parserState = this.httpRequestParser.parse(bytes);
 		    if(parserState == ParserState.FINISH){
-			channel.write(ByteBuffer.wrap(http200));
+			int ptr =0;
+			if((ptr =httpRequestParser.getArenaPtr()) > 0){
+			    channel.write(ByteBuffer.wrap(r_prefix));
+
+			    buf[0]= (byte)(ptr >>> 24);
+			    buf[1] = (byte)(ptr >>> 16);
+			    buf[2] = (byte)(ptr >>> 8);
+			    buf[3] = (byte) ptr;
+			    channel.write(ByteBuffer.wrap(buf));
+			    channel.write(ByteBuffer.wrap(r_body));
+			    
+			    for(int i =0; i< ptr;i++){
+				box[0] = (byte) 65;
+				channel.write(ByteBuffer.wrap(box));
+			    }
+			
+			    
+			}else{
+			    channel.write(ByteBuffer.wrap(http200));
+			}
+			//channel.write(ByteBuffer.wrap(http200));
 			channel.close();
 			break;
 		    }else if(parserState == ParserState.ERROR){

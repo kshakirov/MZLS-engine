@@ -70,6 +70,7 @@ public class WirthHttpParser{
 	
 	//var offsets = wirthParsedData.offsetsTable();// 127 method, uri,headers should be enough 
 	for (; index < payload.length; index++){
+	    // System.out.println("index is " + index + " consumded bytes " + consumedBytes);
 	    switch(status){
 	    case REQ_METHOD: {
 		switch(payload[index])  {
@@ -198,6 +199,7 @@ public class WirthHttpParser{
 		case 0x0A:{
 		    //		    console.printf("current %d\n", payload[i]);
 		    status = STATUS.FINISHED;
+		    index = index + 0;
 		    break;
 		}
 		default:{
@@ -221,9 +223,14 @@ public class WirthHttpParser{
 		default: {
 		    //for the time being
 		    if(this.bodyType==BodyType.FIXED_CONTENT  && payload[index] > 47 && payload[index] <58){
+			fixed_content_match = 0;
 			content_length = content_length * 10 + (payload[index] - '0');
 		    }
-		    
+		    if(this.bodyType==BodyType.CHUNK_CONTENT){
+			fixed_content_match = 0;
+		    }
+
+				    
 		    break;
 		}
 
@@ -235,12 +242,13 @@ public class WirthHttpParser{
 
 	    case STATUS.FINISHED: {
 		//		console.printf("STATUS.FINISH: reading \n");
+		consumedBytes += index;
 		return status;
 	    }
 
 	    case ERROR:{
 		//		console.printf("STATUS.ERROR: reading \n");
-
+		consumedBytes += index;
 		return status;
 	    }
 	    }

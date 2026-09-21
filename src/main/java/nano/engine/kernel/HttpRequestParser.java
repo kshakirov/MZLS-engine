@@ -2,13 +2,13 @@ package nano.engine.kernel;
 import nano.engine.kernel.WirthHttpParser.STATUS;
 
 import nano.engine.kernel.WirthHttpParser.BodyType;
+import java.util.Arrays;
 
 
 
-
-import nano.engine.kernel.HttpBodyParserAutomaton;
 import nano.engine.kernel.HttpBodyParserAutomaton.State;
 import nano.engine.kernel.HttpBodyParserAutomaton.NetworkInput;
+import nano.engine.kernel.HttpBodyParserAutomaton;
 
 public class HttpRequestParser {
     public enum Phase {
@@ -28,6 +28,7 @@ public class HttpRequestParser {
 
     private WirthHttpParser wirthHttpParser;
     private byte[] arena;
+    private int arenaPtr;
     private int consumedBytes; //index
     private int contentLength;
     private WirthHttpParser.STATUS headerStatus;
@@ -75,19 +76,41 @@ public class HttpRequestParser {
 		return ParserState.ERROR;
 	    }
 	    if(headerStatus==STATUS.FINISHED && phase == Phase.HEADER){
+		var consumedBytes = wirthHttpParser.getConsumedBytes();
+		System.out.println("c " + consumedBytes);
 		if(wirthHttpParser.getBodyType()== BodyType.FIXED_CONTENT){
 		    contentLength = wirthHttpParser.getContentLength();
 		    byte[] arena = new byte[contentLength];
-		    automaton = new HttpBodyParserAutomaton(State.PARSE_HEADERS,
-								 NetworkInput.HEADERS_PARSED_CONTENT_LENGTH,
-								 contentLength,
-								 fragment,
-								 0,
-								 arena
+		    if(fragment.length == 1 ){
+			System.out.println("Fragment 1 is " + fragment[0]);
+			automaton = new HttpBodyParserAutomaton(State.PARSE_HEADERS,
+								NetworkInput.HEADERS_PARSED_CONTENT_LENGTH,
+								contentLength,
+								fragment,
+								wirthHttpParser.getConsumedBytes(),
+								arena
 														 
 								 );
+			phase = Phase.BODY;
+			//return ParserState.NEEDS_MORE_DATA;
+		    }else{
+			System.out.println("Mullit Fragment 1 is " + fragment[0]);
+			fragment = Arrays.copyOfRange(fragment, 1, fragment.length);
+			
+			
+		    
+			automaton = new HttpBodyParserAutomaton(State.PARSE_HEADERS,
+							    NetworkInput.HEADERS_PARSED_CONTENT_LENGTH,
+								 contentLength,
+								fragment,
+							    wirthHttpParser.getConsumedBytes(),
+								 arena
+								
+								 );
+		    }
 	    
-		    phase = Phase.BODY;   
+		    phase = Phase.BODY;
+
 		}
 
 	    }
@@ -95,9 +118,8 @@ public class HttpRequestParser {
 	    
 
 	if(phase == Phase.BODY){
-	    automaton.resetBufferPointer();
-	    automaton.resetArenaPointer();
 	    this.arena = automaton.runEngine(fragment);
+	    this.arenaPtr = automaton.getArenPtr();
 	    var state = automaton.getStatus();
 	    if(state!= State.SUCCESS && state!= State.ERROR){
 		
@@ -114,5 +136,7 @@ public class HttpRequestParser {
     public byte[] getArena(){
 	return this.arena;
     }
-
+    public int getArenaPtr(){
+	return this.arenaPtr;
+    }
 }
