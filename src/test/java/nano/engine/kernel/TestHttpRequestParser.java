@@ -40,8 +40,9 @@ public class TestHttpRequestParser{
 
 	var payload = postRequest;
 	var wholeParser = new HttpRequestParser();
-	var wholeArena = wholeParser.getArena();
+
 	var wholeResult = wholeParser.parse(payload);
+	var wholeArena = wholeParser.getArena();
 	var arena = new byte[POSTREQUEST_SIZE];
 	var byte_counter =0;
 	for (int i =0; i< payload.length ; i++){
@@ -58,7 +59,7 @@ public class TestHttpRequestParser{
 	    if(streamedResult == ParserState.FINISH){
 
 		assert byte_counter == POSTREQUEST_CONTENT.length;
-		//assert Arrays.equals(wholeArena, POSTREQUEST_CONTENT);
+		assert Arrays.equals(wholeArena, POSTREQUEST_CONTENT);
 		break;
 	    }
 	}

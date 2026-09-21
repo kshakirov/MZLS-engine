@@ -81,9 +81,7 @@ public class HttpRequestParser {
 		if(wirthHttpParser.getBodyType()== BodyType.FIXED_CONTENT){
 		    contentLength = wirthHttpParser.getContentLength();
 		    byte[] arena = new byte[contentLength];
-		    if(fragment.length == 1 ){
-			System.out.println("Fragment 1 is " + fragment[0]);
-			automaton = new HttpBodyParserAutomaton(State.PARSE_HEADERS,
+		    automaton = new HttpBodyParserAutomaton(State.PARSE_HEADERS,
 								NetworkInput.HEADERS_PARSED_CONTENT_LENGTH,
 								contentLength,
 								fragment,
@@ -91,25 +89,8 @@ public class HttpRequestParser {
 								arena
 														 
 								 );
-			phase = Phase.BODY;
-			//return ParserState.NEEDS_MORE_DATA;
-		    }else{
-			System.out.println("Mullit Fragment 1 is " + fragment[0]);
-			fragment = Arrays.copyOfRange(fragment, 1, fragment.length);
-			
-			
-		    
-			automaton = new HttpBodyParserAutomaton(State.PARSE_HEADERS,
-							    NetworkInput.HEADERS_PARSED_CONTENT_LENGTH,
-								 contentLength,
-								fragment,
-							    wirthHttpParser.getConsumedBytes(),
-								 arena
-								
-								 );
-		    }
-	    
 		    phase = Phase.BODY;
+
 
 		}
 
