@@ -10,7 +10,6 @@ public class WirthHttpParser{
 	HEADER_NAME(5),
 	HEADER_VALUE(6),
 	FINISHED   (7),
-	PREFINISHED (14),
 	CHECK_NEXT_LINE(9),
 	CHECK_CRLF(12),
 	ERROR(11);
@@ -64,17 +63,17 @@ public class WirthHttpParser{
   
     
 
-    public STATUS  parse(byte[] payload){
+    public STATUS parse(byte payload){
 	var index = 0;
 	
 
 	
 	//var offsets = wirthParsedData.offsetsTable();// 127 method, uri,headers should be enough 
-	for (; index < payload.length; index++){
+	//	for (; index < payload.length; index++){
 	    //System.out.println("index is " + index + " consumded bytes " + consumedBytes);
 	    switch(status){
 	    case REQ_METHOD: {
-		switch(payload[index])  {
+		switch(payload)  {
 		case 0x20: {
 		    status = STATUS.REQ_URI;
 		    offsets[1]= index + consumedBytes; //end of method
@@ -90,7 +89,7 @@ public class WirthHttpParser{
 			
 	    }
 	    case REQ_URI :{
-		switch(payload[index]){
+		switch(payload){
 		case 0x20 :{
 		    status = STATUS.REQ_VERSION;
 		    offsets[3]= index + consumedBytes; //the same logic as above
@@ -108,7 +107,7 @@ public class WirthHttpParser{
 		break;
 	    }
 	    case REQ_VERSION :{
-		switch(payload[index]){
+		switch(payload){
 		case 0x0D :{
 		    status = STATUS.CHECK_NEXT_LINE;
 		    offsets[5]= index + consumedBytes;//end of version
@@ -125,7 +124,7 @@ public class WirthHttpParser{
 		break;
 	    }
 	    case CHECK_NEXT_LINE: {
-		switch(payload[index]){
+		switch(payload){
 		case 0x0A :{
 		    //console.printf("STATUS.NEXTL LINE : HEADER NAME STARTED i[%d] \n", i);
 		    status = STATUS.HEADER_NAME;
@@ -147,7 +146,7 @@ public class WirthHttpParser{
 
 
 	    case HEADER_NAME: {
-		switch(payload[index]){
+		switch(payload){
 		case 0x0D :{
 		    status = STATUS.CHECK_CRLF;
 		    //		    console.printf("Going to CRLF\n");
@@ -166,7 +165,7 @@ public class WirthHttpParser{
 		default: {
 		    //for the time being
 
-		    if(payload[index] == BodyType.FIXED_CONTENT.bValue()[fixed_content_match]){
+		    if(payload == BodyType.FIXED_CONTENT.bValue()[fixed_content_match]){
 
 			fixed_content_match += 1;
 			if(fixed_content_match == FIXED_CONTENT_LENGTH){
@@ -176,7 +175,7 @@ public class WirthHttpParser{
 			fixed_content_match = 0;
 		    }
 
-		    if(payload[index] == BodyType.CHUNK_CONTENT.bValue()[chunk_content_match]){
+		    if(payload == BodyType.CHUNK_CONTENT.bValue()[chunk_content_match]){
 
 			chunk_content_match += 1;
 			if(chunk_content_match == CHUNK_CONTENT_LENGTH){
@@ -195,12 +194,12 @@ public class WirthHttpParser{
 
 	    case CHECK_CRLF: {
 
-		switch (payload[index]){
+		switch (payload){
 
 		    
 		case 0x0A:{
 
-		    status = STATUS.PREFINISHED;
+		    status = STATUS.FINISHED;
 		    //System.out.println("CRLF " + consumedBytes);
 		    //		    index = index + 1;
 		    break;
@@ -215,7 +214,7 @@ public class WirthHttpParser{
 	    }
 
 	    case HEADER_VALUE: {
-		switch(payload[index]){
+		switch(payload){
 		case 0x0D :{
 		    //		    console.printf("STATUS.HEADER VALUE : HEADER VALUE FINISHED i[%d] \n", i);
 		    status = STATUS.CHECK_NEXT_LINE;
@@ -225,9 +224,9 @@ public class WirthHttpParser{
 		}
 		default: {
 		    //for the time being
-		    if(this.bodyType==BodyType.FIXED_CONTENT  && payload[index] > 47 && payload[index] <58){
+		    if(this.bodyType==BodyType.FIXED_CONTENT  && payload > 47 && payload <58){
 			fixed_content_match = 0;
-			content_length = content_length * 10 + (payload[index] - '0');
+			content_length = content_length * 10 + (payload - '0');
 		    }
 		    if(this.bodyType==BodyType.CHUNK_CONTENT){
 			fixed_content_match = 0;
@@ -241,13 +240,6 @@ public class WirthHttpParser{
 		    break;	       
 	    }	
 
-	    case STATUS.PREFINISHED: {
-
-		consumedBytes += index;
-		//	System.out.println("STATUS.FINISH: reading consumedBytes " + consumedBytes);
-		status = STATUS.FINISHED;
-		return status;
-	    }	
 		
 	    case STATUS.FINISHED: {
 
@@ -265,8 +257,8 @@ public class WirthHttpParser{
 	
 
 	       
-	}
-	consumedBytes += index;
+	    //}
+	    //consumedBytes += index;
 	//System.out.println("return " + consumedBytes);
 	
 	return status;
