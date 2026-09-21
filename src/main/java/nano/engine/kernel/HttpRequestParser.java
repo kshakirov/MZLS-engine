@@ -67,39 +67,44 @@ public class HttpRequestParser {
 
 
 	if(phase == Phase.HEADER){
-	    headerStatus = wirthHttpParser.parse(fragment);
-	    if(headerStatus==STATUS.PREFINISHED){
-		// know that this is
-		System.out.println("Prefinished" + fragment.length );
+	    for (int i =0; i < fragment.length; i++){
+		headerStatus = wirthHttpParser.parse(fragment[i]);
 		
-	    }
-	    if(headerStatus!= STATUS.ERROR && headerStatus != STATUS.FINISHED){
+		if(headerStatus == STATUS.FINISHED){
 
-		return ParserState.NEEDS_MORE_DATA;
-	    }else if(headerStatus== STATUS.ERROR){
-		return ParserState.ERROR;
-	    }
-	    if(headerStatus==STATUS.FINISHED && phase == Phase.HEADER){
-		var consumedBytes = wirthHttpParser.getConsumedBytes();
-		System.out.println("c " + consumedBytes);
-		System.out.println("framgent length" + fragment.length );
-		if(wirthHttpParser.getBodyType()== BodyType.FIXED_CONTENT){
-		    contentLength = wirthHttpParser.getContentLength();
-		    byte[] arena = new byte[contentLength];
-		    automaton = new HttpBodyParserAutomaton(State.PARSE_HEADERS,
-								NetworkInput.HEADERS_PARSED_CONTENT_LENGTH,
-								contentLength,
-								fragment,
-								wirthHttpParser.getConsumedBytes(),
-								arena
-														 
-								 );
-		    phase = Phase.BODY;
-
-
+		    break;
+		}else if(headerStatus== STATUS.ERROR){
+		    return ParserState.ERROR;
 		}
-
 	    }
+	    
+	    // if(headerStatus==STATUS.FINISHED && phase == Phase.HEADER){
+	    // 	var consumedBytes = wirthHttpParser.getConsumedBytes();
+	    // 	System.out.println("c " + consumedBytes);
+	    // 	System.out.println("framgent length" + fragment.length );
+	    // 	if(wirthHttpParser.getBodyType()== BodyType.FIXED_CONTENT){
+	    // 	    contentLength = wirthHttpParser.getContentLength();
+	    // 	    byte[] arena = new byte[contentLength];
+	    // 	    automaton = new HttpBodyParserAutomaton(State.PARSE_HEADERS,
+	    // 							NetworkInput.HEADERS_PARSED_CONTENT_LENGTH,
+	    // 							contentLength,
+	    // 							fragment,
+	    // 							wirthHttpParser.getConsumedBytes(),
+	    // 							arena
+														 
+	    // 							 );
+	    // 	    phase = Phase.BODY;
+
+
+	    // 	}
+
+	    // }
+	    if(wirthHttpParser.getBodyType()== BodyType.FIXED_CONTENT){
+		contentLength = wirthHttpParser.getContentLength();
+		byte[] arena = new byte[contentLength];
+		System.out.println("content length " + contentLength);
+	    }
+
 	}
 	    
 
