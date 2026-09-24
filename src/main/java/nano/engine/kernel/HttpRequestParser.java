@@ -36,8 +36,8 @@ public class HttpRequestParser {
 
     
     //    private 
-    public HttpRequestParser(){
-	this.wirthHttpParser = new WirthHttpParser();
+    public HttpRequestParser(WirthHttpParser wirthHttpParser){
+	this.wirthHttpParser = wirthHttpParser;
 
 	//	offsetTable = new int[64];
 	arena = new byte[1024];
