@@ -78,7 +78,7 @@ public class HttpBodyParserAutomaton {
 		return;
 	    }
 	    else if (currentInput == NetworkInput.READING_FIXED_DATA && currentValue ==0){
-
+		
 		currentState =  State.SUCCESS;
 		return;
 	    }
