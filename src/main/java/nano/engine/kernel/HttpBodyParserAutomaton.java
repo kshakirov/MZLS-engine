@@ -103,57 +103,44 @@ public class HttpBodyParserAutomaton {
 	return this.arenaPtr;
     }
 			   
-    public byte[] runEngine(byte[]fragment){
+    public byte[] runEngine(byte fragment){
 	//	this.fragment= fragment;
 
 	int counter = 0;
-	while(counter >= 0) {
-	    switch(currentState){
- 	    case State.SUCCESS:{
-		return arena;
-	    }
-	    case State.ERROR:{
-		return arena;
-	    }
-	    case State.READ_CHUNK_DATA :{
-		//System.out.println("runEnginge: state is READ CHUNK arena ptr "+ arenaPtr + " buffer ptr " + bufferPtr + " current value " + currentValue  );
-		var regs = readChunkFixedLength(currentValue, fragment, bufferPtr, arena ,arenaPtr);
-		currentState = State.READ_CHUNK_DATA;
-		currentInput = NetworkInput.READING_FIXED_DATA;
-		bufferPtr = regs[1];
 
-		//arena[arenaPtr] = fragment[arenaPtr];
-		//arenaPtr = regs[2];
-
-		
-
-
-		//System.out.println("runEnginge: state is READ CHUNK, bufferPtr " + bufferPtr + " current value " +  currentValue + " bufferLen " + fragment.length + "  " + regs[0] + " arena ptr "+ arenaPtr);
-		if(regs[0] > 0){
-		    currentValue =  regs[0];
-		    return arena;
-		}else{
-		    currentValue = 0;
-		}
-	    }
-	    default: {
-		//return State.ERROR;
-		//System.out.println("runEnginge: Nothing yet found state is " + currentState + " input is " + currentInput);
-	    }
-	      
-	    }
-	    nextState();
+	switch(currentState){
+	case State.SUCCESS:{
+	    return arena;
 	}
+	case State.ERROR:{
+	    return arena;
+	}
+	case State.READ_CHUNK_DATA :{
+	   
+	    currentState = State.READ_CHUNK_DATA;
+	    currentInput = NetworkInput.READING_FIXED_DATA;
+	    
+	   
+	}
+	default: {
+	    //return State.ERROR;
+	    //System.out.println("runEnginge: Nothing yet found state is " + currentState + " input is " + currentInput);
+	    break;
+	}
+	      
+	}
+	nextState();
+
 	return arena;
     }
     private int[] readChunkFixedLength(int value, byte[] buf , int bufPtr, byte[] a, int aPtr){
 	if(buf.length ==1){
 	    //System.out.println("in one while " + aPtr + " buf" + buf[bufPtr]);
-		a[0] = buf[0];
-		value -=1;
-		registers[0] = value;
-		registers[1] = 0;
-		registers[2] = 0;
+	    a[0] = buf[0];
+	    value -=1;
+	    registers[0] = value;
+	    registers[1] = 0;
+	    registers[2] = 0;
 
 	
 	    return registers;

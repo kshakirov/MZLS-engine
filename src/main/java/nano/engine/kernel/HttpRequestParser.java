@@ -78,44 +78,30 @@ public class HttpRequestParser {
 		}
 	    }
 	    
-	    // if(headerStatus==STATUS.FINISHED && phase == Phase.HEADER){
-	    // 	var consumedBytes = wirthHttpParser.getConsumedBytes();
-	    // 	System.out.println("c " + consumedBytes);
-	    // 	System.out.println("framgent length" + fragment.length );
-	    // 	if(wirthHttpParser.getBodyType()== BodyType.FIXED_CONTENT){
-	    // 	    contentLength = wirthHttpParser.getContentLength();
-	    // 	    byte[] arena = new byte[contentLength];
-	    // 	    automaton = new HttpBodyParserAutomaton(State.PARSE_HEADERS,
-	    // 							NetworkInput.HEADERS_PARSED_CONTENT_LENGTH,
-	    // 							contentLength,
-	    // 							fragment,
-	    // 							wirthHttpParser.getConsumedBytes(),
-	    // 							arena
-														 
-	    // 							 );
-	    // 	    phase = Phase.BODY;
-
-
-	    // 	}
-
-	    // }
 	    if(wirthHttpParser.getBodyType()== BodyType.FIXED_CONTENT){
 		contentLength = wirthHttpParser.getContentLength();
 		byte[] arena = new byte[contentLength];
 		System.out.println("content length " + contentLength);
+		
+		phase = Phase.BODY;
 	    }
 
 	}
 	    
 
 	if(phase == Phase.BODY){
-	    this.arena = automaton.runEngine(fragment);
-	    this.arenaPtr = automaton.getArenPtr();
-	    var state = automaton.getStatus();
-	    if(state!= State.SUCCESS && state!= State.ERROR){
+	    System.out.println("Here we area");
+	    
+	    for(int i=0;i <fragment.length; i++){
+		this.arena = automaton.runEngine(fragment[i]);
+		this.arenaPtr = automaton.getArenPtr();
+		var state = automaton.getStatus();
+		if(state!= State.SUCCESS && state!= State.ERROR){
 		
-		return ParserState.NEEDS_MORE_DATA;
+		    //		return ParserState.NEEDS_MORE_DATA;
+		    System.out.println(state);
 		
+		}
 	    }
 	}
 
