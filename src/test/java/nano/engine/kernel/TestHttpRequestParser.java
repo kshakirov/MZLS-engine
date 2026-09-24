@@ -4,6 +4,10 @@ import nano.engine.kernel.HttpRequestParser;
 import nano.engine.kernel.HttpRequestParser.ParserState;
 
 import nano.engine.kernel.HttpBodyParserAutomaton;
+import nano.engine.kernel.HttpBodyParserAutomaton.State;
+import nano.engine.kernel.HttpBodyParserAutomaton.NetworkInput;
+import nano.engine.kernel.WirthHttpParser;
+
 import java.util.Arrays;
 
 
@@ -36,10 +40,21 @@ public class TestHttpRequestParser{
 	final byte[] POSTREQUEST_CONTENT = ("{\"a\":1}").getBytes();
 	final int POSTREQUEST_SIZE = POSTREQUEST_CONTENT.length;
 	System.out.println(POSTREQUEST_SIZE);
-	var parser = new HttpRequestParser();
+	var wirthParser = new WirthHttpParser();
+	var arena = new byte[1024];
+	var automaton = new HttpBodyParserAutomaton(State.READ_CHUNK_DATA,
+						     NetworkInput.READING_FIXED_DATA,
+						     POSTREQUEST_SIZE,
+						     null,
+						     0,
+						     arena
+														 
+						     );
+
+	var parser = new HttpRequestParser(wirthParser, automaton);
 
 	var payload = postRequest;
-	var wholeParser = new HttpRequestParser();
+	var wholeParser = new HttpRequestParser(wirthParser,automaton);
 
 	var wholeResult = wholeParser.parse(payload);
 	// var wholeArena = wholeParser.getArena();

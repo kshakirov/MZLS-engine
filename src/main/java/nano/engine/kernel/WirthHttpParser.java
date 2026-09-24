@@ -9,6 +9,7 @@ public class WirthHttpParser{
 	REQ_VERSION(3),
 	HEADER_NAME(5),
 	HEADER_VALUE(6),
+	PREFINISHED(14),
 	FINISHED   (7),
 	CHECK_NEXT_LINE(9),
 	CHECK_CRLF(12),
@@ -199,9 +200,9 @@ public class WirthHttpParser{
 		    
 		case 0x0A:{
 
-		    status = STATUS.FINISHED;
-		    //System.out.println("CRLF " + consumedBytes);
-		    //		    index = index + 1;
+		    status = STATUS.PREFINISHED;
+		    System.out.println("CRLF " + consumedBytes);
+
 		    break;
 		}
 		default:{
@@ -239,11 +240,17 @@ public class WirthHttpParser{
 		}
 		    break;	       
 	    }	
-
 		
+	    case STATUS.PREFINISHED: {
+		
+		consumedBytes += index + 1;
+		//	System.out.println("STATUS.FINISH: reading consumedBytes " + consumedBytes);
+		status = STATUS.FINISHED;;
+	    }
+
 	    case STATUS.FINISHED: {
 
-		consumedBytes += index;
+		consumedBytes += index + 1;
 		//	System.out.println("STATUS.FINISH: reading consumedBytes " + consumedBytes);
 		return status;
 	    }

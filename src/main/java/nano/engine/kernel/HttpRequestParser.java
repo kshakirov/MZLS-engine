@@ -36,24 +36,16 @@ public class HttpRequestParser {
 
     
     //    private 
-    public HttpRequestParser(WirthHttpParser wirthHttpParser){
+    public HttpRequestParser(WirthHttpParser wirthHttpParser,HttpBodyParserAutomaton automaton){
 	this.wirthHttpParser = wirthHttpParser;
+	this.automaton = automaton;
 
-	//	offsetTable = new int[64];
 	arena = new byte[1024];
 
 	consumedBytes =0;
 	contentLength =0;
 	headerStatus = STATUS.REQ_METHOD;
 	phase = Phase.HEADER;
-	this.automaton = new HttpBodyParserAutomaton(State.PARSE_HEADERS,
-						     NetworkInput.HEADERS_PARSED_CONTENT_LENGTH,
-						     contentLength,
-						     null,
-						     consumedBytes,
-						     arena
-														 
-						     );
 	
     };
 
@@ -65,9 +57,9 @@ public class HttpRequestParser {
     public ParserState  parse(byte[] fragment){
 	//somewhere to accumulate the whole body
 
-
+	int i = 0;
 	if(phase == Phase.HEADER){
-	    for (int i =0; i < fragment.length; i++){
+	    for (; i < fragment.length; i++){
 		headerStatus = wirthHttpParser.parse(fragment[i]);
 		
 		if(headerStatus == STATUS.FINISHED){
@@ -77,31 +69,37 @@ public class HttpRequestParser {
 		    return ParserState.ERROR;
 		}
 	    }
+	    if(headerStatus == STATUS.FINISHED){
 	    
-	    if(wirthHttpParser.getBodyType()== BodyType.FIXED_CONTENT){
-		contentLength = wirthHttpParser.getContentLength();
-		byte[] arena = new byte[contentLength];
-		System.out.println("content length " + contentLength);
-		
-		phase = Phase.BODY;
+		if(wirthHttpParser.getBodyType()== BodyType.FIXED_CONTENT){
+		    contentLength = wirthHttpParser.getContentLength();
+		    byte[] arena = new byte[contentLength];
+		    System.out.println("content length " + contentLength);
+		    phase = Phase.BODY;
+		}else if(wirthHttpParser.getBodyType()== BodyType.CHUNK_CONTENT){
+		    System.out.println("");
+		}
+	    }else{
+		return ParserState.NEEDS_MORE_DATA;
 	    }
-
-	}
 	    
+	}
+
 
 	if(phase == Phase.BODY){
 	    System.out.println("Here we area");
 	    
-	    for(int i=0;i <fragment.length; i++){
+	    for(;i < fragment.length; i++){
 		this.arena = automaton.runEngine(fragment[i]);
 		this.arenaPtr = automaton.getArenPtr();
 		var state = automaton.getStatus();
 		if(state!= State.SUCCESS && state!= State.ERROR){
-		
-		    //		return ParserState.NEEDS_MORE_DATA;
-		    System.out.println(state);
+		    
+		    System.out.println(state + " cv " + automaton.getArenPtr() );
 		
 		}
+		System.out.println("Final automaton state is " + state);
+		
 	    }
 	}
 

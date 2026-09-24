@@ -46,12 +46,11 @@ public class HttpBodyParserAutomaton {
     private final int[] registers = new int[3];
 
     public HttpBodyParserAutomaton(State state, NetworkInput input, int value, byte[] buf, int bufPtr, byte[] arena){
-	currentState = State.PARSE_HEADERS;
+	currentState = state;
 	currentInput = input;
 	currentValue = value;
 	//	fragment = buf;
 	arenaPtr = 0;
-	bufferPtr = bufPtr;
 	this.arena = arena;
     }
     
@@ -102,12 +101,11 @@ public class HttpBodyParserAutomaton {
     public int getArenPtr(){
 	return this.arenaPtr;
     }
+    
 			   
     public byte[] runEngine(byte fragment){
-	//	this.fragment= fragment;
-
 	int counter = 0;
-
+	System.out.println(fragment);
 	switch(currentState){
 	case State.SUCCESS:{
 	    return arena;
@@ -116,9 +114,13 @@ public class HttpBodyParserAutomaton {
 	    return arena;
 	}
 	case State.READ_CHUNK_DATA :{
-	   
+	    currentValue -= 1;
 	    currentState = State.READ_CHUNK_DATA;
 	    currentInput = NetworkInput.READING_FIXED_DATA;
+	    arena[arenaPtr] = fragment;
+	    arenaPtr += 1;
+
+	    System.out.println("CV " + this.currentValue);
 	    
 	   
 	}
@@ -133,42 +135,5 @@ public class HttpBodyParserAutomaton {
 
 	return arena;
     }
-    private int[] readChunkFixedLength(int value, byte[] buf , int bufPtr, byte[] a, int aPtr){
-	if(buf.length ==1){
-	    //System.out.println("in one while " + aPtr + " buf" + buf[bufPtr]);
-	    a[0] = buf[0];
-	    value -=1;
-	    registers[0] = value;
-	    registers[1] = 0;
-	    registers[2] = 0;
-
-	
-	    return registers;
-	}
-	else if(bufPtr < buf.length){
-	    while (bufPtr < buf.length && value >  0){
-		//		System.out.println("in while " + aPtr + " buf" + buf[bufPtr]);
-		a[aPtr] = buf[bufPtr];
-		bufPtr += 1;
-		aPtr +=1;
-		value -=1;
-	
-	    }
-
-	    registers[0] = value;
-	    registers[1] = bufPtr;
-	    registers[2] = aPtr;
-	    return registers;
-
-
-	}else {
-	    registers[0] = value;
-	    registers[1] = bufPtr;
-	    registers[2] = aPtr;
-	    return registers;
-
-	    
-	}
-    }
-
+   
 }
