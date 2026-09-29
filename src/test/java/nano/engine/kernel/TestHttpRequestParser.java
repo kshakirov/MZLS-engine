@@ -72,7 +72,7 @@ public class TestHttpRequestParser{
 	var wholeArena = wholeParser.getArena();
 	var wholeArenaPtr = wholeParser.getArenaPtr();
 	int i =0;
-	//	assert(bytes.length == POSTREQUEST_SIZE);
+	assert(wholeArenaPtr == POSTREQUEST_SIZE);
 
 	console.printf("Arena: Size of template is %d arena size is %d  arenaPtr is %d \n", wholeArena.length, POSTREQUEST_SIZE, wholeArenaPtr);
 	for(byte b : POSTREQUEST_CONTENT){
@@ -92,6 +92,7 @@ public class TestHttpRequestParser{
 	assert(fragmentedResult == ParserState.FINISH);
 	var fragmentedArena = fragmentedParser.getArena();
 	var fragmentedArenaPtr = fragmentedParser.getArenaPtr();
+	assert(fragmentedArenaPtr == POSTREQUEST_SIZE);
 	console.printf("Arena: Size of template is %d arena size is %d  arenaPtr is %d \n", fragmentedArena.length, POSTREQUEST_SIZE, fragmentedArenaPtr);
 	int y =0;
 	for(byte b : POSTREQUEST_CONTENT){
