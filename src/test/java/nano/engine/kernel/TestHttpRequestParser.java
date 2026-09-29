@@ -74,17 +74,17 @@ public class TestHttpRequestParser{
 	int i =0;
 	assert(wholeArenaPtr == POSTREQUEST_SIZE);
 
-	console.printf("Arena: Size of template is %d arena size is %d  arenaPtr is %d \n", wholeArena.length, POSTREQUEST_SIZE, wholeArenaPtr);
+	
 	for(byte b : POSTREQUEST_CONTENT){
 	    assert(wholeArena[i] == b);
 	    	    i += 1;
 	}
-	//	console.printf("\n");
+	
 	var fragmentedParser = new HttpRequestParser(wirthParser_2, automaton_2);
 	var b_array = new byte[1 ];
 	var fragmentedResult = ParserState.START;
 	for(byte b:payload){
-	    //	    console.printf("%c", b);
+	
 	    b_array[0]= b;
 	    fragmentedResult = fragmentedParser.parse(b_array);
 	    
@@ -93,7 +93,6 @@ public class TestHttpRequestParser{
 	var fragmentedArena = fragmentedParser.getArena();
 	var fragmentedArenaPtr = fragmentedParser.getArenaPtr();
 	assert(fragmentedArenaPtr == POSTREQUEST_SIZE);
-	console.printf("Arena: Size of template is %d arena size is %d  arenaPtr is %d \n", fragmentedArena.length, POSTREQUEST_SIZE, fragmentedArenaPtr);
 	int y =0;
 	for(byte b : POSTREQUEST_CONTENT){
 	    assert(fragmentedArena[y] == b);
