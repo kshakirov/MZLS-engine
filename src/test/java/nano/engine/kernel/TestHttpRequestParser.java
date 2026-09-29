@@ -7,6 +7,7 @@ import nano.engine.kernel.HttpBodyParserAutomaton;
 import nano.engine.kernel.HttpBodyParserAutomaton.State;
 import nano.engine.kernel.HttpBodyParserAutomaton.NetworkInput;
 import nano.engine.kernel.WirthHttpParser;
+import java.io.Console;
 
 import java.util.Arrays;
 
@@ -39,10 +40,11 @@ public class TestHttpRequestParser{
 
 	final byte[] POSTREQUEST_CONTENT = ("{\"a\":1}").getBytes();
 	final int POSTREQUEST_SIZE = POSTREQUEST_CONTENT.length;
-	System.out.println(POSTREQUEST_SIZE);
-	var wirthParser = new WirthHttpParser();
+	Console console = System.console();
+	var wirthParser_1 = new WirthHttpParser();
+	var wirthParser_2 = new WirthHttpParser();
 	var arena = new byte[1024];
-	var automaton = new HttpBodyParserAutomaton(State.READ_CHUNK_DATA,
+	var automaton_1 = new HttpBodyParserAutomaton(State.READ_CHUNK_DATA,
 						     NetworkInput.READING_FIXED_DATA,
 						     POSTREQUEST_SIZE,
 						     null,
@@ -51,12 +53,41 @@ public class TestHttpRequestParser{
 														 
 						     );
 
-	var parser = new HttpRequestParser(wirthParser, automaton);
+	var automaton_2 = new HttpBodyParserAutomaton(State.READ_CHUNK_DATA,
+						     NetworkInput.READING_FIXED_DATA,
+						     POSTREQUEST_SIZE,
+						     null,
+						     0,
+						     new byte[1024]
+														 
+						     );
+	
+
 
 	var payload = postRequest;
-	var wholeParser = new HttpRequestParser(wirthParser,automaton);
+	var wholeParser = new HttpRequestParser(wirthParser_1,automaton_1);
 
 	var wholeResult = wholeParser.parse(payload);
+	assert(wholeResult == ParserState.FINISH);
+	var bytes = wholeParser.getArena();
+	int i =0;
+	//	assert(bytes.length == POSTREQUEST_SIZE);
+	console.printf("Must be resolved: Size of template is %d arena size is %d \n", bytes.length, POSTREQUEST_SIZE);
+	for(byte b : POSTREQUEST_CONTENT){
+	    assert(bytes[i] == b);
+	    	    i += 1;
+	}
+	//	console.printf("\n");
+	var fragmentedParser = new HttpRequestParser(wirthParser_2, automaton_2);
+	var b_array = new byte[1 ];
+	var fragmentedResult = ParserState.START;
+	for(byte b:payload){
+	    //	    console.printf("%c", b);
+	    b_array[0]= b;
+	    fragmentedResult = fragmentedParser.parse(b_array);
+	    
+	}
+	assert(fragmentedResult == ParserState.FINISH);
 	// var wholeArena = wholeParser.getArena();
 	// var arena = new byte[POSTREQUEST_SIZE];
 	// var byte_counter =0;
@@ -80,7 +111,7 @@ public class TestHttpRequestParser{
 	// 	break;
 	//     }
 	// }
-	System.out.println(wholeResult);
+
 
     }
 }
