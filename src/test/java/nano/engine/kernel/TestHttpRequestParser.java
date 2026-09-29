@@ -69,12 +69,12 @@ public class TestHttpRequestParser{
 
 	var wholeResult = wholeParser.parse(payload);
 	assert(wholeResult == ParserState.FINISH);
-	var bytes = wholeParser.getArena();
+	var wholeArena = wholeParser.getArena();
 	int i =0;
 	//	assert(bytes.length == POSTREQUEST_SIZE);
-	console.printf("Must be resolved: Size of template is %d arena size is %d \n", bytes.length, POSTREQUEST_SIZE);
+	console.printf("Must be resolved: Size of template is %d arena size is %d \n", wholeArena.length, POSTREQUEST_SIZE);
 	for(byte b : POSTREQUEST_CONTENT){
-	    assert(bytes[i] == b);
+	    assert(wholeArena[i] == b);
 	    	    i += 1;
 	}
 	//	console.printf("\n");
@@ -88,30 +88,14 @@ public class TestHttpRequestParser{
 	    
 	}
 	assert(fragmentedResult == ParserState.FINISH);
-	// var wholeArena = wholeParser.getArena();
-	// var arena = new byte[POSTREQUEST_SIZE];
-	// var byte_counter =0;
-	// for (int i =0; i< payload.length ; i++){
-	//     var streamedResult = parser.parse(new byte[]{payload[i]});
-	//     var a = parser.getArena();//we know in this case for sure all
-	//     if(a != null &&  a[0] != (byte) 0x00 ){
-	// 	System.out.println(a[0]);
-	// 	System.out.println(wholeArena[byte_counter]);
-		
-	// 	System.out.println(POSTREQUEST_CONTENT[byte_counter]);
-	// 	System.out.println(byte_counter);
-	// 	assert(a[0] == POSTREQUEST_CONTENT[byte_counter]);
-	// 	byte_counter += 1;
-
-	//     }
-	//     if(streamedResult == ParserState.FINISH){
-
-	// 	assert byte_counter == POSTREQUEST_CONTENT.length;
-	// 	assert Arrays.equals(wholeArena, POSTREQUEST_CONTENT);
-	// 	break;
-	//     }
-	// }
-
+	var fragmentedArena = fragmentedParser.getArena();
+	
+	console.printf("Must be resolved: Size of template is %d arena size is %d \n", fragmentedArena.length, POSTREQUEST_SIZE);
+	int y =0;
+	for(byte b : POSTREQUEST_CONTENT){
+	    assert(fragmentedArena[y] == b);
+	    y += 1;
+	}
 
     }
 }
