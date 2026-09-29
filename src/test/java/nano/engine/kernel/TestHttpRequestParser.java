@@ -83,10 +83,17 @@ public class TestHttpRequestParser{
 	var fragmentedParser = new HttpRequestParser(wirthParser_2, automaton_2);
 	var b_array = new byte[1 ];
 	var fragmentedResult = ParserState.START;
-	for(byte b:payload){
-	
-	    b_array[0]= b;
+	var bodyStart = payload.length - POSTREQUEST_SIZE;
+	for(int payloadIndex = 0; payloadIndex < payload.length; payloadIndex++){
+
+	    b_array[0]= payload[payloadIndex];
 	    fragmentedResult = fragmentedParser.parse(b_array);
+	    if(payloadIndex >= bodyStart){
+		var isLastBodyByte = payloadIndex == payload.length - 1;
+		assert(fragmentedResult == (isLastBodyByte
+					    ? ParserState.FINISH
+					    : ParserState.NEEDS_MORE_DATA));
+	    }
 	    //System.out.printf("%s\n",fragmentedResult.toString());
 	}
 	assert(fragmentedResult == ParserState.FINISH);
