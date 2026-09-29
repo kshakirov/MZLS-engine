@@ -87,8 +87,7 @@ public class HttpRequestParser {
 
 
 	if(phase == Phase.BODY){
-	    System.out.println("Here we area");
-	    
+	   	    
 	    for(;i < fragment.length; i++){
 		this.arena = automaton.runEngine(fragment[i]);
 		this.arenaPtr = automaton.getArenPtr();
@@ -96,11 +95,13 @@ public class HttpRequestParser {
 		if(state!= State.SUCCESS && state!= State.ERROR){
 		    
 		    System.out.println(state + " cv " + automaton.getArenPtr() );
-		
+		 
 		}
 		System.out.println("Final automaton state is " + state);
 		
 	    }
+	    
+	    
 	}
 
     

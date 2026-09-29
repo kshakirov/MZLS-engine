@@ -105,7 +105,7 @@ public class HttpBodyParserAutomaton {
 			   
     public byte[] runEngine(byte fragment){
 	int counter = 0;
-	System.out.println(fragment);
+	//System.out.println(fragment);
 	switch(currentState){
 	case State.SUCCESS:{
 	    return arena;
@@ -120,7 +120,7 @@ public class HttpBodyParserAutomaton {
 	    arena[arenaPtr] = fragment;
 	    arenaPtr += 1;
 
-	    System.out.println("CV " + this.currentValue);
+	    //System.out.println("CV " + this.currentValue);
 	    
 	   
 	}

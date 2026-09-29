@@ -87,7 +87,7 @@ public class TestHttpRequestParser{
 	
 	    b_array[0]= b;
 	    fragmentedResult = fragmentedParser.parse(b_array);
-	    
+	    //System.out.printf("%s\n",fragmentedResult.toString());
 	}
 	assert(fragmentedResult == ParserState.FINISH);
 	var fragmentedArena = fragmentedParser.getArena();
