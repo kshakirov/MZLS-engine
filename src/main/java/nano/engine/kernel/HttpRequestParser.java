@@ -56,7 +56,7 @@ public class HttpRequestParser {
 
     public ParserState  parse(byte[] fragment){
 	//somewhere to accumulate the whole body
-
+	var resultState = ParserState.START;
 	int i = 0;
 	if(phase == Phase.HEADER){
 	    for (; i < fragment.length; i++){
@@ -95,18 +95,22 @@ public class HttpRequestParser {
 		if(state!= State.SUCCESS && state!= State.ERROR){
 		    
 		    System.out.println(state + " cv " + automaton.getArenPtr() );
+		    resultState = ParserState.NEEDS_MORE_DATA;
 		 
+		}else{
+		    resultState = ParserState.FINISH;
 		}
 		System.out.println("Final automaton state is " + state);
 		
 	    }
 	    
 	    
+	    
 	}
 
     
 	
-	return ParserState.FINISH;
+	return resultState;
     }
 
     public byte[] getArena(){
