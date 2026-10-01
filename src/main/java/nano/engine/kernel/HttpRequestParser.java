@@ -89,6 +89,9 @@ public class HttpRequestParser {
 	if(phase == Phase.BODY){
 	   	    
 	    for(;i < fragment.length; i++){
+		if(fragment[i]==10){
+		    continue;
+		}
 		this.arena = automaton.runEngine(fragment[i]);
 		this.arenaPtr = automaton.getArenPtr();
 		var state = automaton.getStatus();

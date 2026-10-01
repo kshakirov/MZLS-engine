@@ -5,7 +5,7 @@ package nano.engine.kernel;
 public class HttpBodyParserAutomaton {
 
     public enum  State {
-	PARSE_HEADERS,
+
 	EXPECT_CHUNK_SIZE,
 	READ_CHUNK_DATA,
 	SUCCESS,
@@ -56,21 +56,7 @@ public class HttpBodyParserAutomaton {
     
     private void nextState(){
 	switch(currentState){
-	case State.PARSE_HEADERS:{
-	    if (currentInput == NetworkInput.HEADERS_PARSED_EMPTY)
-		{
-		    currentState = State.SUCCESS;
-		    return;
-		}
-	    else if (currentInput == NetworkInput.HEADERS_PARSED_CONTENT_LENGTH){
 
-		currentState = State.READ_CHUNK_DATA;
-		currentInput = NetworkInput.READING_FIXED_DATA;
-		return;
-		 
-	    }
-	    break;
-	}
 	case State.READ_CHUNK_DATA: {
 	    if (currentInput == NetworkInput.READING_FIXED_DATA && currentValue > 0){
 
