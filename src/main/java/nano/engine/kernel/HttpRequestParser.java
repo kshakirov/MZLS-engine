@@ -28,7 +28,6 @@ public class HttpRequestParser {
     private WirthHttpParser wirthHttpParser;
     private byte[] arena;
     private int arenaPtr;
-    private int consumedBytes; //index
     private int contentLength;
     private WirthHttpParser.STATUS headerStatus;
     private HttpBodyParserAutomaton automaton;
@@ -39,10 +38,7 @@ public class HttpRequestParser {
     public HttpRequestParser(WirthHttpParser wirthHttpParser,HttpBodyParserAutomaton automaton){
 	this.wirthHttpParser = wirthHttpParser;
 	this.automaton = automaton;
-
 	arena = new byte[1024];
-
-	consumedBytes =0;
 	contentLength =0;
 	headerStatus = STATUS.REQ_METHOD;
 	phase = Phase.HEADER;
