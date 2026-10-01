@@ -1,15 +1,12 @@
 package nano.engine.kernel;
 
-import nano.engine.kernel.HttpRequestParser;
 import nano.engine.kernel.HttpRequestParser.ParserState;
 
-import nano.engine.kernel.HttpBodyParserAutomaton;
+
 import nano.engine.kernel.HttpBodyParserAutomaton.State;
 import nano.engine.kernel.HttpBodyParserAutomaton.NetworkInput;
-import nano.engine.kernel.WirthHttpParser;
-import java.io.Console;
 
-import java.util.Arrays;
+
 
 
 public class TestHttpRequestParser{
@@ -40,24 +37,17 @@ public class TestHttpRequestParser{
 
 	final byte[] POSTREQUEST_CONTENT = ("{\"a\":1}").getBytes();
 	final int POSTREQUEST_SIZE = POSTREQUEST_CONTENT.length;
-	Console console = System.console();
 	var wirthParser_1 = new WirthHttpParser();
 	var wirthParser_2 = new WirthHttpParser();
-	var arena = new byte[1024];
 	var automaton_1 = new HttpBodyParserAutomaton(State.READ_CHUNK_DATA,
 						     NetworkInput.READING_FIXED_DATA,
 						     POSTREQUEST_SIZE,
-						     null,
-						     0,
-						     arena
-														 
+						     new byte[1023]
 						     );
 
 	var automaton_2 = new HttpBodyParserAutomaton(State.READ_CHUNK_DATA,
 						     NetworkInput.READING_FIXED_DATA,
 						     POSTREQUEST_SIZE,
-						     null,
-						     0,
 						     new byte[1024]
 														 
 						     );
@@ -76,7 +66,7 @@ public class TestHttpRequestParser{
 
 	
 	for(byte b : POSTREQUEST_CONTENT){
-	    System.out.printf("b is %d  arena is %d", b, wholeArena[i]);
+	    //System.out.printf("b is %d  arena is %d", b, wholeArena[i]);
 	    assert(wholeArena[i] == b);
 	    	    i += 1;
 	}
@@ -95,7 +85,7 @@ public class TestHttpRequestParser{
 					    ? ParserState.FINISH
 					    : ParserState.NEEDS_MORE_DATA));
 	    }
-	    //System.out.printf("%s\n",fragmentedResult.toString());
+
 	}
 	assert(fragmentedResult == ParserState.FINISH);
 	var fragmentedArena = fragmentedParser.getArena();

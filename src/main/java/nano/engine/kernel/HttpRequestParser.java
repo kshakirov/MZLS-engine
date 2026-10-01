@@ -74,10 +74,10 @@ public class HttpRequestParser {
 		if(wirthHttpParser.getBodyType()== BodyType.FIXED_CONTENT){
 		    contentLength = wirthHttpParser.getContentLength();
 		    byte[] arena = new byte[contentLength];
-		    System.out.println("content length " + contentLength);
+		    //	    System.out.println("content length " + contentLength);
 		    phase = Phase.BODY;
 		}else if(wirthHttpParser.getBodyType()== BodyType.CHUNK_CONTENT){
-		    System.out.println("");
+		    //System.out.println("");
 		}
 	    }else{
 		return ParserState.NEEDS_MORE_DATA;
@@ -97,13 +97,13 @@ public class HttpRequestParser {
 		var state = automaton.getStatus();
 		if(state!= State.SUCCESS && state!= State.ERROR){
 		    
-		    System.out.println(state + " cv " + automaton.getArenPtr() );
+		    //System.out.println(state + " cv " + automaton.getArenPtr() );
 		    resultState = ParserState.NEEDS_MORE_DATA;
 		 
 		}else{
 		    resultState = ParserState.FINISH;
 		}
-		System.out.println("Final automaton state is " + state);
+		//System.out.println("Final automaton state is " + state);
 		
 	    }
 	    

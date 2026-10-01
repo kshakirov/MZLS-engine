@@ -9,11 +9,11 @@ public class HttpBodyParserAutomaton {
 	EXPECT_CHUNK_SIZE,
 	READ_CHUNK_DATA,
 	SUCCESS,
-	ERROR,
-	EXPECT_CHUNK_CR,
-	EXPECT_CHUNK_LF,
-	READ_CHUNK_CR,
-	READ_CHUNK_LF;
+	ERROR;
+	// EXPECT_CHUNK_CR,
+	// EXPECT_CHUNK_LF,
+	// READ_CHUNK_CR,
+	// READ_CHUNK_LF;
     }
 
     public enum NetworkInput{
@@ -39,17 +39,15 @@ public class HttpBodyParserAutomaton {
     private State currentState;
     private NetworkInput currentInput;
     private int currentValue;
-    //    private byte[] fragment;
-    private int bufferPtr;
+
     private byte[] arena;
     private int arenaPtr;
-    private final int[] registers = new int[3];
 
-    public HttpBodyParserAutomaton(State state, NetworkInput input, int value, byte[] buf, int bufPtr, byte[] arena){
+
+    public HttpBodyParserAutomaton(State state, NetworkInput input, int value,  byte[] arena){
 	currentState = state;
 	currentInput = input;
 	currentValue = value;
-	//	fragment = buf;
 	arenaPtr = 0;
 	this.arena = arena;
     }
@@ -78,20 +76,14 @@ public class HttpBodyParserAutomaton {
     public State getStatus(){
 	return this.currentState;
     }
-    public void resetBufferPointer(){
-	this.bufferPtr=0;
-    }
-    public void resetArenaPointer(){
-	this.arenaPtr=0;
-    }
+
     public int getArenPtr(){
 	return this.arenaPtr;
     }
     
 			   
     public byte[] runEngine(byte fragment){
-	int counter = 0;
-	//System.out.println(fragment);
+
 	switch(currentState){
 	case State.SUCCESS:{
 	    return arena;
@@ -105,14 +97,10 @@ public class HttpBodyParserAutomaton {
 	    currentInput = NetworkInput.READING_FIXED_DATA;
 	    arena[arenaPtr] = fragment;
 	    arenaPtr += 1;
-
-	    //System.out.println("CV " + this.currentValue);
-	    
 	   
 	}
 	default: {
-	    //return State.ERROR;
-	    //System.out.println("runEnginge: Nothing yet found state is " + currentState + " input is " + currentInput);
+
 	    break;
 	}
 	      
