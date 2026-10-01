@@ -4,28 +4,23 @@ package nano.engine.kernel;
 public class WirthHttpParser{
     public enum STATUS {
 
-	REQ_METHOD(1),
-	REQ_URI(2),
-	REQ_VERSION(3),
-	HEADER_NAME(5),
-	HEADER_VALUE(6),
-	FINISHED   (7),
-	CHECK_NEXT_LINE(9),
-	CHECK_CRLF(12),
-	ERROR(11);
-	STATUS(int value) {this.value=value;};
-	private final int value;
-	public int value() {return value;}
+	REQ_METHOD,
+	REQ_URI,
+	REQ_VERSION,
+	HEADER_NAME,
+	HEADER_VALUE,
+	FINISHED,
+	CHECK_NEXT_LINE,
+	CHECK_CRLF,
+	ERROR;
+
     }
     public enum METHODS{
-	GET("GET"),
-	HEAD("HEAD"),
-	POST("POST"),
-	PUT("GET");
-	METHODS(String value){this.value=value;}
-	private final String value;
-	public String value() {return value;}
-	public byte[] bValue() {return value.getBytes();}
+	GET,
+	HEAD,
+	POST,
+	PUT;
+	
     }
     public enum BodyType {
 	FIXED_CONTENT("Content-Length".getBytes()),
