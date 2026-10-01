@@ -38,24 +38,17 @@ public class WirthHttpParser{
 
     private STATUS status;
     private  int nextOffsetIdx;
-    private int consumedBytes;
-    private int[] offsets;
     private BodyType bodyType;
     private int fixed_content_match;
-    private int fixed_content_value;
     private int chunk_content_match;
     private int content_length;
     private final int FIXED_CONTENT_LENGTH=14;
     private final int  CHUNK_CONTENT_LENGTH= 17;
     public WirthHttpParser (){
 	this.status = STATUS.REQ_METHOD;
-	this.nextOffsetIdx =0;
-	this.consumedBytes =0;
-	this.offsets = new int[64];
 	this.bodyType = BodyType.NONE;
 	this.fixed_content_match=0;
 	this.chunk_content_match=0;
-	this.fixed_content_value=0;
 	this.content_length = 0;
 
 
@@ -64,7 +57,6 @@ public class WirthHttpParser{
     
 
     public STATUS parse(byte payload){
-	var index = 0;
 	
 	    switch(status){
 	    case REQ_METHOD: {
@@ -101,7 +93,6 @@ public class WirthHttpParser{
 		switch(payload){
 		case 0x0D :{
 		    status = STATUS.CHECK_NEXT_LINE;
-		    nextOffsetIdx = 5;
 		    break;
 		}
 		default: {
@@ -117,7 +108,6 @@ public class WirthHttpParser{
 		switch(payload){
 		case 0x0A :{
 		    status = STATUS.HEADER_NAME;
-		    nextOffsetIdx += 1;//convention each header part increments offset for itself
 		    break;
 		}
 		default: {
@@ -140,10 +130,7 @@ public class WirthHttpParser{
 		}
 		case 0x3A:{
 		    status = STATUS.HEADER_VALUE;
-		    nextOffsetIdx += 1;
-		    offsets[nextOffsetIdx] = index + consumedBytes;//the end exclusive of Header name
-		    nextOffsetIdx += 1;
-		    offsets[nextOffsetIdx] = index + 1 + consumedBytes;//the start of header value inclusive
+		    
 
 		    break;
 		}
@@ -202,8 +189,7 @@ public class WirthHttpParser{
 		case 0x0D :{
 
 		    status = STATUS.CHECK_NEXT_LINE;
-		    nextOffsetIdx += 1;
-
+		    
 		    break;
 		}
 		default: {
@@ -227,14 +213,14 @@ public class WirthHttpParser{
 
 	    case STATUS.FINISHED: {
 
-		consumedBytes += index + 1;
+
 		//	System.out.println("STATUS.FINISH: reading consumedBytes " + consumedBytes);
 		return status;
 	    }
 
 	    case ERROR:{
 		//		console.printf("STATUS.ERROR: reading \n");
-		consumedBytes += index;
+
 		return status;
 	    }
 	    }
