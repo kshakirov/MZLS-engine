@@ -76,6 +76,7 @@ public class TestHttpRequestParser{
 
 	
 	for(byte b : POSTREQUEST_CONTENT){
+	    System.out.printf("b is %d  arena is %d", b, wholeArena[i]);
 	    assert(wholeArena[i] == b);
 	    	    i += 1;
 	}

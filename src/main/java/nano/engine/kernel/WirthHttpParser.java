@@ -9,7 +9,6 @@ public class WirthHttpParser{
 	REQ_VERSION(3),
 	HEADER_NAME(5),
 	HEADER_VALUE(6),
-	PREFINISHED(14),
 	FINISHED   (7),
 	CHECK_NEXT_LINE(9),
 	CHECK_CRLF(12),
@@ -67,18 +66,11 @@ public class WirthHttpParser{
     public STATUS parse(byte payload){
 	var index = 0;
 	
-
-	
-	//var offsets = wirthParsedData.offsetsTable();// 127 method, uri,headers should be enough 
-	//	for (; index < payload.length; index++){
-	    //System.out.println("index is " + index + " consumded bytes " + consumedBytes);
 	    switch(status){
 	    case REQ_METHOD: {
 		switch(payload)  {
 		case 0x20: {
 		    status = STATUS.REQ_URI;
-		    offsets[1]= index + consumedBytes; //end of method
-		    offsets[2] = index + 1+ consumedBytes; //start of uri
 		    break;
 		}
 		default: {
@@ -93,8 +85,6 @@ public class WirthHttpParser{
 		switch(payload){
 		case 0x20 :{
 		    status = STATUS.REQ_VERSION;
-		    offsets[3]= index + consumedBytes; //the same logic as above
-		    offsets[4] = index + 1 + consumedBytes;
 		    break;
 
 		}
@@ -111,7 +101,6 @@ public class WirthHttpParser{
 		switch(payload){
 		case 0x0D :{
 		    status = STATUS.CHECK_NEXT_LINE;
-		    offsets[5]= index + consumedBytes;//end of version
 		    nextOffsetIdx = 5;
 		    break;
 		}
@@ -127,11 +116,8 @@ public class WirthHttpParser{
 	    case CHECK_NEXT_LINE: {
 		switch(payload){
 		case 0x0A :{
-		    //console.printf("STATUS.NEXTL LINE : HEADER NAME STARTED i[%d] \n", i);
 		    status = STATUS.HEADER_NAME;
 		    nextOffsetIdx += 1;//convention each header part increments offset for itself
-		    offsets[nextOffsetIdx] = index + 1 + consumedBytes;
-		    //nextOffsetIdx += 1;
 		    break;
 		}
 		default: {
@@ -150,8 +136,6 @@ public class WirthHttpParser{
 		switch(payload){
 		case 0x0D :{
 		    status = STATUS.CHECK_CRLF;
-		    //		    console.printf("Going to CRLF\n");
-		    // System.out.println("before final " + consumedBytes);
 		    break;
 		}
 		case 0x3A:{
@@ -164,16 +148,15 @@ public class WirthHttpParser{
 		    break;
 		}
 		default: {
-		    //for the time being
-
+	
 		    if(payload == BodyType.FIXED_CONTENT.bValue()[fixed_content_match]){
-
 			fixed_content_match += 1;
 			if(fixed_content_match == FIXED_CONTENT_LENGTH){
 			    this.bodyType = BodyType.FIXED_CONTENT;
 			}
 		    }else{
 			fixed_content_match = 0;
+			//TODO: make failed field in case "XXXXXCONTENT-LENGTHXXXX"
 		    }
 
 		    if(payload == BodyType.CHUNK_CONTENT.bValue()[chunk_content_match]){
@@ -184,6 +167,7 @@ public class WirthHttpParser{
 			}
 		    }else{
 			chunk_content_match = 0;
+			//TODO: make failed field in case "XXXXXCONTENT-LENGTHXXXX"
 		    }
 
 		    break;
@@ -200,8 +184,7 @@ public class WirthHttpParser{
 		    
 		case 0x0A:{
 
-		    status = STATUS.PREFINISHED;
-		    System.out.println("CRLF " + consumedBytes);
+		    status = STATUS.FINISHED;
 
 		    break;
 		}
@@ -217,10 +200,10 @@ public class WirthHttpParser{
 	    case HEADER_VALUE: {
 		switch(payload){
 		case 0x0D :{
-		    //		    console.printf("STATUS.HEADER VALUE : HEADER VALUE FINISHED i[%d] \n", i);
+
 		    status = STATUS.CHECK_NEXT_LINE;
 		    nextOffsetIdx += 1;
-		    offsets[nextOffsetIdx] = index + consumedBytes; //the end of header value exclusive
+
 		    break;
 		}
 		default: {
@@ -241,12 +224,6 @@ public class WirthHttpParser{
 		    break;	       
 	    }	
 		
-	    case STATUS.PREFINISHED: {
-		
-		consumedBytes += index + 1;
-		//	System.out.println("STATUS.FINISH: reading consumedBytes " + consumedBytes);
-		status = STATUS.FINISHED;;
-	    }
 
 	    case STATUS.FINISHED: {
 
@@ -264,22 +241,11 @@ public class WirthHttpParser{
 	
 
 	       
-	    //}
-	    //consumedBytes += index;
-	//System.out.println("return " + consumedBytes);
 	
 	return status;
 	
     }
-    public int[] getOffsetTable(){
-	return this.offsets;
-    }
-    public int getNextOffsetIdx(){
-	return this.nextOffsetIdx;
-    }
-    public int getConsumedBytes(){
-	return this.consumedBytes;
-    };
+
     public int getContentLength(){
 	return this.content_length;
     }

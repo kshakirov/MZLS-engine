@@ -1,6 +1,7 @@
 package nano.engine.kernel;
 
 
+import nano.engine.kernel.WirthHttpParser.BodyType;
 import nano.engine.kernel.WirthHttpParser.STATUS;
 
 public  class TestWirthHttpParser{
@@ -17,14 +18,14 @@ public  class TestWirthHttpParser{
 				      "\r\n"
 				      ).getBytes(java.nio.charset.StandardCharsets.UTF_8);
     private static byte[] heavyGet = (
-				      "GET /api/v1/users/profile?id=42 HTTP/1.1\r\n" +
+				      "POST /api/v1/users/profile?id=42 HTTP/1.1\r\n" +
 				      "Host: 127.0.0.1\r\n" +
 				      "User-Agent: wrk/4.2.0\r\n" +
 				      "Accept: */*\r\n" +
 				      "X-Real-IP: 192.168.1.100\r\n" +
 				      "Connection: keep-alive\r\n" +
-				      "Content-Length: 64\r\n" +
-				      "\r\n"
+				      "Content-Length: 2\r\n" +
+				      "12\r\n\r\n"
 				      ).getBytes(java.nio.charset.StandardCharsets.UTF_8);
     public static void dumpOffsets(byte[] payload, int[] offsets) {
 	for (int j = 0; j < 6; j+=2) {
@@ -58,27 +59,20 @@ public  class TestWirthHttpParser{
 
 
     public static void main(String[] args){
-
+	var payload = heavyGet;
 	var streamedParser = new WirthHttpParser();
-	// var wholeParser = new WirthHttpParser();
-	// var wholeResult = wholeParser.parse(heavyGet);
+
 	var streamedResult  = STATUS.REQ_METHOD;
-	 var payload = heavyGet;
-	 for (int i =0; i< payload.length ; i++){
-	    streamedResult =  streamedParser.parse(payload[i]);
-	    System.out.printf("consumedBytes %d nextOffsetIds %d Status %s\n", streamedParser.getConsumedBytes(), streamedParser.getNextOffsetIdx(), streamedResult);
-	}
-	// assert(wholeParser.getOffsetTable() != streamedParser.getOffsetTable());
-	// assert(wholeParser.getConsumedBytes() == streamedParser.getConsumedBytes());
-	// assert(wholeParser.getNextOffsetIdx() == streamedParser.getNextOffsetIdx());
-	// assert(wholeResult == streamedResult);
-	// assert(wholeParser.getOffsetTable().length == streamedParser.getOffsetTable().length);
-	// for(int i=0;i <wholeParser.getOffsetTable().length; i++){
-	//     assert(wholeParser.getOffsetTable()[i] == streamedParser.getOffsetTable()[i]);
-	// }
-	// assert(streamedParser.getConsumedBytes() == wholeParser.getConsumedBytes() );
 	
-    
+	for (int i =0; i< payload.length ; i++){
+	    streamedResult =  streamedParser.parse(payload[i]);
+	    
+	}
+	
+	assert(streamedResult == STATUS.FINISHED);
+	assert(streamedParser.getBodyType() == BodyType.FIXED_CONTENT);
+	assert(streamedParser.getContentLength() == 2);
+	 
     }
      
 }
