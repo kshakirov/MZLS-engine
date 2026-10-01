@@ -32,7 +32,6 @@ public class WirthHttpParser{
     }
 
     private STATUS status;
-    private  int nextOffsetIdx;
     private BodyType bodyType;
     private int fixed_content_match;
     private int chunk_content_match;
