@@ -37,25 +37,11 @@ public class TestHttpRequestParser{
 
 	final byte[] POSTREQUEST_CONTENT = ("{\"a\":1}").getBytes();
 	final int POSTREQUEST_SIZE = POSTREQUEST_CONTENT.length;
-	var wirthParser_1 = new WirthHttpParser();
-	var wirthParser_2 = new WirthHttpParser();
-	var automaton_1 = new HttpBodyParserAutomaton(State.READ_CHUNK_DATA,
-						     NetworkInput.READING_FIXED_DATA,
-						     POSTREQUEST_SIZE,
-						     new byte[1023]
-						     );
-
-	var automaton_2 = new HttpBodyParserAutomaton(State.READ_CHUNK_DATA,
-						     NetworkInput.READING_FIXED_DATA,
-						     POSTREQUEST_SIZE,
-						     new byte[1024]
-														 
-						     );
 	
 
 
 	var payload = postRequest;
-	var wholeParser = new HttpRequestParser(wirthParser_1,automaton_1);
+	var wholeParser = new HttpRequestParser();
 
 	var wholeResult = wholeParser.parse(payload);
 	assert(wholeResult == ParserState.FINISH);
@@ -71,7 +57,7 @@ public class TestHttpRequestParser{
 	    	    i += 1;
 	}
 	
-	var fragmentedParser = new HttpRequestParser(wirthParser_2, automaton_2);
+	var fragmentedParser = new HttpRequestParser();
 	var b_array = new byte[1 ];
 	var fragmentedResult = ParserState.START;
 	var bodyStart = payload.length - POSTREQUEST_SIZE;

@@ -35,9 +35,9 @@ public class HttpRequestParser {
 
     
     //    private 
-    public HttpRequestParser(WirthHttpParser wirthHttpParser,HttpBodyParserAutomaton automaton){
-	this.wirthHttpParser = wirthHttpParser;
-	this.automaton = automaton;
+    public HttpRequestParser(){
+	this.wirthHttpParser = new WirthHttpParser();
+	//	this.automaton = automaton;
 	arena = new byte[1024];
 	contentLength =0;
 	headerStatus = STATUS.REQ_METHOD;
@@ -69,6 +69,10 @@ public class HttpRequestParser {
 	    
 		if(wirthHttpParser.getBodyType()== BodyType.FIXED_CONTENT){
 		    contentLength = wirthHttpParser.getContentLength();
+		    automaton = new HttpBodyParserAutomaton(State.READ_CHUNK_DATA,
+							    NetworkInput.READING_FIXED_DATA,
+							    contentLength,
+							    new byte[1024]);
 		    byte[] arena = new byte[contentLength];
 		    //making fragment pointer to increase to body start
 		    if(fragment.length - 1 > i){
