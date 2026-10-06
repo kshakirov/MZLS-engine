@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import nano.engine.kernel.HttpRequestParser.ParserState;
+import nano.engine.kernel.HttpBodyParserAutomaton.*;;
 
 public class TestSocketServer {
 
@@ -54,12 +55,12 @@ public class TestSocketServer {
     class MyConnectionHandler implements Runnable{
 	private int buffSize;
 	private SocketChannel channel;
-	private WirthHttpParser wirthParser;
 	private HttpRequestParser httpRequestParser;
 	public MyConnectionHandler(SocketChannel channel, int buffSize){
 	    this.channel = channel;
 	    this.buffSize = buffSize;
 	    this.httpRequestParser = new HttpRequestParser();
+						     
 
 	}
 	public void run() {
