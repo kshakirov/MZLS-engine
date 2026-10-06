@@ -70,7 +70,15 @@ public class HttpRequestParser {
 		if(wirthHttpParser.getBodyType()== BodyType.FIXED_CONTENT){
 		    contentLength = wirthHttpParser.getContentLength();
 		    byte[] arena = new byte[contentLength];
-		    //	    System.out.println("content length " + contentLength);
+		    //making fragment pointer to increase to body start
+		    if(fragment.length - 1 > i){
+			i += 1;
+		    }else{
+			//do nothing it will return and next time get back with the new byt
+			 phase = Phase.BODY;
+			 return ParserState.NEEDS_MORE_DATA;
+		    }
+		    
 		    phase = Phase.BODY;
 		}else if(wirthHttpParser.getBodyType()== BodyType.CHUNK_CONTENT){
 		    //System.out.println("");
@@ -85,9 +93,9 @@ public class HttpRequestParser {
 	if(phase == Phase.BODY){
 	   	    
 	    for(;i < fragment.length; i++){
-		if(fragment[i]==10){
-		    continue;
-		}
+		// if(fragment[i]==10){
+		//     continue;
+		// }
 		this.arena = automaton.runEngine(fragment[i]);
 		this.arenaPtr = automaton.getArenPtr();
 		var state = automaton.getStatus();
