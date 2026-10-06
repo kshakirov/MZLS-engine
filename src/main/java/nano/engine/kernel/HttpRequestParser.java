@@ -84,6 +84,8 @@ public class HttpRequestParser {
 		    phase = Phase.BODY;
 		}else if(wirthHttpParser.getBodyType()== BodyType.CHUNK_CONTENT){
 		    //System.out.println("");
+		}else{
+		    return ParserState.FINISH;
 		}
 	    }else{
 		return ParserState.NEEDS_MORE_DATA;
