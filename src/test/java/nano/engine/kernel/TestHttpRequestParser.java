@@ -25,12 +25,14 @@ public class TestHttpRequestParser{
 				      "X-Real-IP: 192.168.1.100\r\n" +
 				      "Connection: keep-alive\r\n" +
 				      "Content-Length: 64\r\n" +
+				      "User-Agent: 850" +
 				      "\r\n"
 				      ).getBytes(java.nio.charset.StandardCharsets.UTF_8);
     private static byte[] postRequest = ("POST /api/v1/data HTTP/1.1\r\n" +
 					 "Host: localhost\r\n" +
 					 "Content-Type: application/json\r\n" +
 					 "Content-Length: 7\r\n" +
+					 "User-Agent: 850\r\n" +
 					 "\r\n" +
 					 "{\"a\":1}").getBytes();
     public static void main(String[] args){
@@ -44,6 +46,7 @@ public class TestHttpRequestParser{
 	var wholeParser = new HttpRequestParser();
 
 	var wholeResult = wholeParser.parse(payload);
+	System.out.println(wholeResult);
 	assert(wholeResult == ParserState.FINISH);
 	var wholeArena = wholeParser.getArena();
 	var wholeArenaPtr = wholeParser.getArenaPtr();
