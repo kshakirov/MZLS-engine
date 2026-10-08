@@ -29,7 +29,18 @@ duration, affinity, keep-alive, Nginx или request template создаёт д�
 
 ## Один независимый прогон
 
-Сервер должен быть уже запущен, а его PID записан в `var/runtime/server.pid`.
+Сначала собрать и запустить сервер:
+
+```bash
+doc/performance/build_and_start_server.sh
+```
+
+Скрипт использует изолированные GraalVM 21 и Maven из `~/opt`, запускает
+`nano.engine.Main`, дожидается живого `/tmp/.jbc_socket` и записывает PID и лог в
+`var/runtime/`. Системную Java по умолчанию он не меняет. Повторный запуск поверх
+живого MZLS-процесса запрещён.
+
+После этого выполнить независимый нагрузочный прогон:
 
 ```bash
 doc/performance/run_get.sh 20000 10s 001

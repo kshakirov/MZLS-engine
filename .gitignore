@@ -4,6 +4,9 @@
 # Local performance samples and Vegeta artifacts
 /var/performance/
 
+# Local benchmark server PID and log
+/var/runtime/
+
 # Eclipse workspace metadata
 /.classpath
 /.project
