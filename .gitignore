@@ -1,6 +1,9 @@
 # Maven build output
 /target/
 
+# Local performance samples and Vegeta artifacts
+/var/performance/
+
 # Eclipse workspace metadata
 /.classpath
 /.project
