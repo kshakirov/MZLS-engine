@@ -1,7 +1,6 @@
 package nano.engine.kernel;
 
 
-
 public class HttpBodyParserAutomaton {
 
     public enum  State {
@@ -9,17 +8,17 @@ public class HttpBodyParserAutomaton {
 	EXPECT_CHUNK_SIZE,
 	READ_CHUNK_DATA,
 	SUCCESS,
-	ERROR;
-	// EXPECT_CHUNK_CR,
-	// EXPECT_CHUNK_LF,
-	// READ_CHUNK_CR,
-	// READ_CHUNK_LF;
+	ERROR,
+	EXPECT_CHUNK_CR,
+	EXPECT_CHUNK_LF,
+	READ_CHUNK_CR,
+	READ_CHUNK_LF;
     }
 
     public enum NetworkInput{
 	READING_FIXED_DATA,
 	// CHUNK_SIZE_GREATER_ZERO ,
-	// CHUNK_SIZE_ZERO,
+	CHUNK_SIZE_ZERO,
 	// DATA_ARRIVED,
 	// MALFORMED,
 
@@ -31,7 +30,7 @@ public class HttpBodyParserAutomaton {
 	// CRLF_VALID,
 	// CR_AFTER_SIZE_VALID,
 	// CR_AFTER_DATA_VALID,
-	// CR_AFTER_ZERO_VALID,
+	CR_AFTER_ZERO_VALID,
 	// LF_AFTER_SIZE_VALID,
 	// LF_AFTER_DATA_VALID,
 	// LF_AFTER_ZERO_VALID,
@@ -69,10 +68,40 @@ public class HttpBodyParserAutomaton {
 	    }
 	    break;
 	}
-        default: {
+
+	case State.EXPECT_CHUNK_SIZE:{
+
+	    switch(currentInput){
+
+	    
+	    case NetworkInput.CHUNK_SIZE_ZERO:{
+		currentState = State.EXPECT_CHUNK_CR;
+		currentInput= NetworkInput.CR_AFTER_ZERO_VALID;
+		return;
+
+	    }
+	    default:{
+	    }
+	    }
+	}
+	    
+	case EXPECT_CHUNK_CR:{
+	    switch(currentInput){
+	    case CR_AFTER_ZERO_VALID:{
+		currentState = State.READ_CHUNK_CR;
+		return;
+	    }
+
+	    default: {
+		
+	    }
+	    }
+	}
+	default: {
 	    
 	}
 	}
+	
     }
     public State getStatus(){
 	return this.currentState;
@@ -99,6 +128,25 @@ public class HttpBodyParserAutomaton {
 	    arena[arenaPtr] = fragment;
 	    arenaPtr += 1;
 	   
+	}
+	case READ_CHUNK_CR: {
+	    switch(currentInput){
+	    case CR_AFTER_ZERO_VALID:{
+		//as far as we read by one byte we don't need to check its existence
+		if(fragment == 13){
+		    //we don't take it to arena but redirect to further reading of
+		    currentState= State.EXPECT_CHUNK_LF;
+		    
+		}else{
+		    currentState = State.ERROR;
+		    return arena;
+		}
+	    }
+	    default:{
+	    }
+	    }
+	    
+	    
 	}
 	default: {
 
