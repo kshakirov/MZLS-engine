@@ -48,7 +48,7 @@ for _ in {1..50}; do
     exit 1
   fi
   if [[ -S "$socket_path" ]] && curl --unix-socket "$socket_path" \
-      --fail --silent --show-error --max-time 1 --output /dev/null \
+      --fail --silent --max-time 1 --output /dev/null \
       http://localhost/index.html; then
     ready=true
     break
