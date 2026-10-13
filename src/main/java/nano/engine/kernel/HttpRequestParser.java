@@ -6,7 +6,7 @@ import java.util.Arrays;
 
 
 import nano.engine.kernel.HttpBodyParserAutomaton.State;
-import nano.engine.kernel.HttpBodyParserAutomaton.NetworkInput;
+import nano.engine.kernel.HttpBodyParserAutomaton.Event;
 import nano.engine.kernel.HttpBodyParserAutomaton;
 
 public class HttpRequestParser {
@@ -68,8 +68,8 @@ public class HttpRequestParser {
 	    
 		if(wirthHttpParser.getBodyType()== BodyType.FIXED_CONTENT){
 		    contentLength = wirthHttpParser.getContentLength();
-		    automaton = new HttpBodyParserAutomaton(State.READ_CHUNK_DATA,
-							    NetworkInput.READING_FIXED_DATA,
+		    automaton = new HttpBodyParserAutomaton(State.READ_BODY,
+							    Event.BODY_BYTE_ACCEPTED,
 							    contentLength,
 							    new byte[contentLength]);
 		    //making fragment pointer to increase to body start

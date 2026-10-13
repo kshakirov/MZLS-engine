@@ -3,50 +3,47 @@ package nano.engine.kernel;
 
 public class HttpBodyParserAutomaton {
 
-    public enum  State {
+	public enum  State {
 
-	EXPECT_CHUNK_SIZE,
-	READ_CHUNK_DATA,
-	SUCCESS,
-	ERROR,
+	INITIAL,
+	READ_CHUNK_SIZE,
+	PREPARE_CHUNK_CR,
 	EXPECT_CHUNK_CR,
 	EXPECT_CHUNK_LF,
-	READ_CHUNK_CR,
-	READ_CHUNK_LF;
+	PROCESS_CHUNK_LF,
+	READ_BODY,
+	SUCCESS,
+	ERROR;
     }
 
-    public enum NetworkInput{
-	READING_FIXED_DATA,
-	// CHUNK_SIZE_GREATER_ZERO ,
-	CHUNK_SIZE_ZERO,
-	// DATA_ARRIVED,
-	// MALFORMED,
-
-	// HEADERS_PARSED_EMPTY,
-	// HEADERS_PARSED_CONTENT_LENGTH,
-	// HEADERS_PARSED_CHUNKED,
-	// CHUNK_DATA_FLOW,
-	// CHUNK_DATA_EMPTY,
-	// CRLF_VALID,
-	// CR_AFTER_SIZE_VALID,
-	// CR_AFTER_DATA_VALID,
-	CR_AFTER_ZERO_VALID,
-	// LF_AFTER_SIZE_VALID,
-	// LF_AFTER_DATA_VALID,
-	// LF_AFTER_ZERO_VALID,
+    public enum Event{
+	NO_BODY,
+	FIXED_LENGTH_BODY,
+	CHUNKED_BODY,
+	NEED_MORE_DATA,
+	CHUNK_SIZE_DIGIT_ACCEPTED,
+	CHUNK_SIZE_OVERFLOW,
+	ZERO_CHUNK_SIZE_DETECTED,
+	ZERO_CHUNK_SIZE_TERMINATED,
+	CHUNK_SIZE_TERMINATED,
+	CR_ACCEPTED,
+	LF_ACCEPTED,
+	BODY_BYTE_ACCEPTED,
+	ZERO_CHUNK_CR_REQUIRED,
+	INVALID_INPUT,
 	TIMEOUT;
     }
     private State currentState;
-    private NetworkInput currentInput;
+    private Event currentEvent;
     private int currentValue;
 
     private byte[] arena;
     private int arenaPtr;
 
 
-    public HttpBodyParserAutomaton(State state, NetworkInput input, int value,  byte[] arena){
+    public HttpBodyParserAutomaton(State state, Event event, int value,  byte[] arena){
 	currentState = state;
-	currentInput = input;
+	currentEvent = event;
 	currentValue = value;
 	arenaPtr = 0;
 	this.arena = arena;
@@ -55,13 +52,13 @@ public class HttpBodyParserAutomaton {
     private void nextState(){
 	switch(currentState){
 
-	case State.READ_CHUNK_DATA: {
-	    if (currentInput == NetworkInput.READING_FIXED_DATA && currentValue > 0){
+	case State.READ_BODY: {
+	    if (currentEvent == Event.BODY_BYTE_ACCEPTED && currentValue > 0){
 
-		currentState =  State.READ_CHUNK_DATA;
+		currentState =  State.READ_BODY;
 		return;
 	    }
-	    else if (currentInput == NetworkInput.READING_FIXED_DATA && currentValue ==0){
+	    else if (currentEvent == Event.BODY_BYTE_ACCEPTED && currentValue ==0){
 		
 		currentState =  State.SUCCESS;
 		return;
@@ -69,14 +66,14 @@ public class HttpBodyParserAutomaton {
 	    break;
 	}
 
-	case State.EXPECT_CHUNK_SIZE:{
+	case State.READ_CHUNK_SIZE:{
 
-	    switch(currentInput){
+	    switch(currentEvent){
 
 	    
-	    case NetworkInput.CHUNK_SIZE_ZERO:{
-		currentState = State.EXPECT_CHUNK_CR;
-		currentInput= NetworkInput.CR_AFTER_ZERO_VALID;
+	    case Event.ZERO_CHUNK_SIZE_DETECTED:{
+		currentState = State.PREPARE_CHUNK_CR;
+		currentEvent= Event.ZERO_CHUNK_CR_REQUIRED;
 		return;
 
 	    }
@@ -85,10 +82,10 @@ public class HttpBodyParserAutomaton {
 	    }
 	}
 	    
-	case EXPECT_CHUNK_CR:{
-	    switch(currentInput){
-	    case CR_AFTER_ZERO_VALID:{
-		currentState = State.READ_CHUNK_CR;
+	case PREPARE_CHUNK_CR:{
+	    switch(currentEvent){
+	    case ZERO_CHUNK_CR_REQUIRED:{
+		currentState = State.EXPECT_CHUNK_CR;
 		return;
 	    }
 
@@ -121,17 +118,17 @@ public class HttpBodyParserAutomaton {
 	case State.ERROR:{
 	    return arena;
 	}
-	case State.READ_CHUNK_DATA :{
+	case State.READ_BODY :{
 	    currentValue -= 1;
-	    currentState = State.READ_CHUNK_DATA;
-	    currentInput = NetworkInput.READING_FIXED_DATA;
+	    currentState = State.READ_BODY;
+	    currentEvent = Event.BODY_BYTE_ACCEPTED;
 	    arena[arenaPtr] = fragment;
 	    arenaPtr += 1;
 	   
 	}
-	case READ_CHUNK_CR: {
-	    switch(currentInput){
-	    case CR_AFTER_ZERO_VALID:{
+	case EXPECT_CHUNK_CR: {
+	    switch(currentEvent){
+	    case ZERO_CHUNK_CR_REQUIRED:{
 		//as far as we read by one byte we don't need to check its existence
 		if(fragment == 13){
 		    //we don't take it to arena but redirect to further reading of

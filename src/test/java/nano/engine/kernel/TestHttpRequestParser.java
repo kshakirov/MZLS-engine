@@ -4,7 +4,7 @@ import nano.engine.kernel.HttpRequestParser.ParserState;
 
 
 import nano.engine.kernel.HttpBodyParserAutomaton.State;
-import nano.engine.kernel.HttpBodyParserAutomaton.NetworkInput;
+import nano.engine.kernel.HttpBodyParserAutomaton.Event;
 
 
 
