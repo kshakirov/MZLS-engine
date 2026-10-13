@@ -68,8 +68,8 @@ public class HttpRequestParser {
 	    
 		if(wirthHttpParser.getBodyType()== BodyType.FIXED_CONTENT){
 		    contentLength = wirthHttpParser.getContentLength();
-		    automaton = new HttpBodyParserAutomaton(State.READ_BODY,
-							    Event.BODY_BYTE_ACCEPTED,
+		    automaton = new HttpBodyParserAutomaton(State.READ_FIXED_BODY,
+							    Event.FIXED_BODY_BYTE_ACCEPTED,
 							    contentLength,
 							    new byte[contentLength]);
 		    //making fragment pointer to increase to body start

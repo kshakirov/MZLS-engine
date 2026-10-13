@@ -11,7 +11,8 @@ public class HttpBodyParserAutomaton {
 	EXPECT_CHUNK_CR,
 	EXPECT_CHUNK_LF,
 	PROCESS_CHUNK_LF,
-	READ_BODY,
+	READ_FIXED_BODY,
+	READ_CHUNK_DATA,
 	SUCCESS,
 	ERROR;
     }
@@ -28,7 +29,8 @@ public class HttpBodyParserAutomaton {
 	CHUNK_SIZE_TERMINATED,
 	CR_ACCEPTED,
 	LF_ACCEPTED,
-	BODY_BYTE_ACCEPTED,
+	FIXED_BODY_BYTE_ACCEPTED,
+	CHUNK_DATA_BYTE_ACCEPTED,
 	ZERO_CHUNK_CR_REQUIRED,
 	INVALID_INPUT,
 	TIMEOUT;
@@ -62,15 +64,26 @@ public class HttpBodyParserAutomaton {
     private void nextState(){
 	switch(currentState){
 
-	case State.READ_BODY: {
-	    if (currentEvent == Event.BODY_BYTE_ACCEPTED && currentValue > 0){
+	case State.READ_FIXED_BODY: {
+	    if (currentEvent == Event.FIXED_BODY_BYTE_ACCEPTED && currentValue > 0){
 
-		currentState =  State.READ_BODY;
+		currentState =  State.READ_FIXED_BODY;
 		return;
 	    }
-	    else if (currentEvent == Event.BODY_BYTE_ACCEPTED && currentValue ==0){
+	    else if (currentEvent == Event.FIXED_BODY_BYTE_ACCEPTED && currentValue ==0){
 		
 		currentState =  State.SUCCESS;
+		return;
+	    }
+	    break;
+	}
+	case State.READ_CHUNK_DATA: {
+	    if (currentEvent == Event.CHUNK_DATA_BYTE_ACCEPTED && currentValue > 0){
+		currentState = State.READ_CHUNK_DATA;
+		return;
+	    }
+	    else if (currentEvent == Event.CHUNK_DATA_BYTE_ACCEPTED && currentValue == 0){
+		currentState = State.EXPECT_CHUNK_CR;
 		return;
 	    }
 	    break;
@@ -105,12 +118,14 @@ public class HttpBodyParserAutomaton {
 	    }
 	    }
 	}
+
+
 	case State.EXPECT_CHUNK_LF:{
 	    switch(currentEvent){
 	    case Event.LF_ACCEPTED:{
 		switch(delimiterContext){
 		case DelimiterContext.AFTER_SIZE:{
-		    currentState = State.READ_BODY;
+		    currentState = State.READ_CHUNK_DATA;
 		}
 		case DelimiterContext.AFTER_DATA:{
 		    currentState = State.READ_CHUNK_SIZE;
@@ -163,13 +178,21 @@ public class HttpBodyParserAutomaton {
 	case State.ERROR:{
 	    return arena;
 	}
-	case State.READ_BODY :{
+	case State.READ_FIXED_BODY :{
 	    currentValue -= 1;
-	    currentState = State.READ_BODY;
-	    currentEvent = Event.BODY_BYTE_ACCEPTED;
+	    currentState = State.READ_FIXED_BODY;
+	    currentEvent = Event.FIXED_BODY_BYTE_ACCEPTED;
 	    arena[arenaPtr] = fragment;
 	    arenaPtr += 1;
-	   
+	    break;
+	}
+	case State.READ_CHUNK_DATA :{
+	    currentValue -= 1;
+	    currentState = State.READ_CHUNK_DATA;
+	    currentEvent = Event.CHUNK_DATA_BYTE_ACCEPTED;
+	    arena[arenaPtr] = fragment;
+	    arenaPtr += 1;
+	    break;
 	}
 	case EXPECT_CHUNK_CR: {
 	    switch(currentEvent){
