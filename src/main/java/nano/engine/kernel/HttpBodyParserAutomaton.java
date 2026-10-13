@@ -33,8 +33,17 @@ public class HttpBodyParserAutomaton {
 	INVALID_INPUT,
 	TIMEOUT;
     }
+
+    public enum DelimiterContext {
+	NO_DELIMITER,
+	AFTER_SIZE,
+	AFTER_DATA,
+	AFTER_ZERO;
+    }
+
     private State currentState;
     private Event currentEvent;
+    private DelimiterContext delimiterContext;
     private int currentValue;
 
     private byte[] arena;                                                                      
@@ -44,6 +53,7 @@ public class HttpBodyParserAutomaton {
     public HttpBodyParserAutomaton(State state, Event event, int value,  byte[] arena){
 	currentState = state;
 	currentEvent = event;
+	delimiterContext = DelimiterContext.NO_DELIMITER;
 	currentValue = value;
 	arenaPtr = 0;
 	this.arena = arena;
@@ -95,7 +105,28 @@ public class HttpBodyParserAutomaton {
 	    }
 	    }
 	}
-	    
+	case State.EXPECT_CHUNK_LF:{
+	    switch(currentEvent){
+	    case Event.LF_ACCEPTED:{
+		switch(delimiterContext){
+		case DelimiterContext.AFTER_SIZE:{
+		    currentState = State.READ_BODY;
+		}
+		case DelimiterContext.AFTER_DATA:{
+		    currentState = State.READ_CHUNK_SIZE;
+		}
+		case DelimiterContext.AFTER_ZERO:{
+		    currentState = State.SUCCESS;
+		}
+		default: {
+
+		}
+		}
+	    }
+	    default:{
+	    }
+	    }
+	}
 	case PREPARE_CHUNK_CR:{
 	    switch(currentEvent){
 	    case ZERO_CHUNK_CR_REQUIRED:{
