@@ -3,7 +3,7 @@ package nano.engine.kernel;
 
 public class HttpBodyParserAutomaton {
 
-	public enum  State {
+    public enum  State {
 
 	INITIAL,
 	READ_CHUNK_SIZE,
@@ -37,7 +37,7 @@ public class HttpBodyParserAutomaton {
     private Event currentEvent;
     private int currentValue;
 
-    private byte[] arena;
+    private byte[] arena;                                                                      
     private int arenaPtr;
 
 
@@ -70,13 +70,27 @@ public class HttpBodyParserAutomaton {
 
 	    switch(currentEvent){
 
-	    
+	    case Event.CHUNK_SIZE_DIGIT_ACCEPTED:{
+		currentState = State.READ_CHUNK_SIZE;
+
+	    }
+	    case Event.CHUNK_SIZE_OVERFLOW	:{
+		currentState = State.ERROR;
+	    }
+
+	    case Event.ZERO_CHUNK_SIZE_TERMINATED:{
+		currentState = State.EXPECT_CHUNK_LF;   
+	    }
+	    case Event.CHUNK_SIZE_TERMINATED:{
+		currentState= State.EXPECT_CHUNK_LF;
+	    }
 	    case Event.ZERO_CHUNK_SIZE_DETECTED:{
 		currentState = State.PREPARE_CHUNK_CR;
 		currentEvent= Event.ZERO_CHUNK_CR_REQUIRED;
 		return;
 
 	    }
+
 	    default:{
 	    }
 	    }
