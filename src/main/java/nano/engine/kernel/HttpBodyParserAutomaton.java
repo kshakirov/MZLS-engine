@@ -95,17 +95,23 @@ public class HttpBodyParserAutomaton {
 
 	    case Event.CHUNK_SIZE_DIGIT_ACCEPTED:{
 		currentState = State.READ_CHUNK_SIZE;
+		return;
 
 	    }
 	    case Event.CHUNK_SIZE_OVERFLOW	:{
 		currentState = State.ERROR;
+		return;
 	    }
 
 	    case Event.ZERO_CHUNK_SIZE_TERMINATED:{
-		currentState = State.EXPECT_CHUNK_LF;   
+		currentState = State.EXPECT_CHUNK_LF;
+		delimiterContext = DelimiterContext.AFTER_ZERO;
+		return;
 	    }
 	    case Event.CHUNK_SIZE_TERMINATED:{
 		currentState= State.EXPECT_CHUNK_LF;
+		delimiterContext = DelimiterContext.AFTER_SIZE;
+		return;
 	    }
 	    case Event.ZERO_CHUNK_SIZE_DETECTED:{
 		currentState = State.PREPARE_CHUNK_CR;
@@ -117,6 +123,7 @@ public class HttpBodyParserAutomaton {
 	    default:{
 	    }
 	    }
+	    break;
 	}
 
 
@@ -126,12 +133,15 @@ public class HttpBodyParserAutomaton {
 		switch(delimiterContext){
 		case DelimiterContext.AFTER_SIZE:{
 		    currentState = State.READ_CHUNK_DATA;
+		    return;
 		}
 		case DelimiterContext.AFTER_DATA:{
 		    currentState = State.READ_CHUNK_SIZE;
+		    return;
 		}
 		case DelimiterContext.AFTER_ZERO:{
 		    currentState = State.SUCCESS;
+		    return;
 		}
 		default: {
 
@@ -142,6 +152,20 @@ public class HttpBodyParserAutomaton {
 	    }
 	    }
 	}
+
+	case State.EXPECT_CHUNK_CR:{
+	    switch(currentEvent){
+	    case Event.CR_ACCEPTED:{
+		currentState = State.EXPECT_CHUNK_LF;
+		delimiterContext = DelimiterContext.AFTER_DATA;
+		return  ;
+		}
+	    default:{
+	    }
+	    }
+	}
+
+	 
 	case PREPARE_CHUNK_CR:{
 	    switch(currentEvent){
 	    case ZERO_CHUNK_CR_REQUIRED:{
@@ -186,6 +210,27 @@ public class HttpBodyParserAutomaton {
 	    arenaPtr += 1;
 	    break;
 	}
+        case State.READ_CHUNK_SIZE:{
+	    if(fragment  ==  13){
+		currentEvent = Event.CHUNK_SIZE_TERMINATED;
+		
+	    }else if(fragment > 30 && fragment < 100){ //here all possible values for hex
+		int v = fromAsciiToHex(fragment);
+		if(v > -1){
+		    currentValue = currentValue * 16 + v;
+		    currentEvent = Event.CHUNK_SIZE_DIGIT_ACCEPTED;
+		}else{
+		    currentState = State.ERROR;
+		    break;
+		}
+	    }else{
+		//error or malformed
+	    }
+
+	    break; 
+	    
+	    
+	    }
 	case State.READ_CHUNK_DATA :{
 	    currentValue -= 1;
 	    currentState = State.READ_CHUNK_DATA;
@@ -195,23 +240,21 @@ public class HttpBodyParserAutomaton {
 	    break;
 	}
 	case EXPECT_CHUNK_CR: {
-	    switch(currentEvent){
-	    case ZERO_CHUNK_CR_REQUIRED:{
-		//as far as we read by one byte we don't need to check its existence
-		if(fragment == 13){
-		    //we don't take it to arena but redirect to further reading of
-		    currentState= State.EXPECT_CHUNK_LF;
-		    
-		}else{
-		    currentState = State.ERROR;
-		    return arena;
+	    if(fragment == 13) {
+		if(currentValue==0){
+		    currentEvent = Event.ZERO_CHUNK_SIZE_TERMINATED;
+		}else{   
+		    currentEvent = Event.CR_ACCEPTED;
 		}
 	    }
-	    default:{
+	    break;
+	}
+	case EXPECT_CHUNK_LF:{
+	    if(fragment == 10){
+		currentEvent = Event.LF_ACCEPTED;
+	    }else{
 	    }
-	    }
-	    
-	    
+	    break;
 	}
 	default: {
 
@@ -221,7 +264,15 @@ public class HttpBodyParserAutomaton {
 	}
 	nextState();
 
-	return arena;
+	return arena;// do we need it?
+    }
+    private int fromAsciiToHex(byte c){
+	int v;
+	if (c >= '0' && c <= '9') v = c - '0';
+	else if (c >= 'A' && c <= 'F') v = c - 'A' + 10;
+	else if (c >= 'a' && c <= 'f') v = c - 'a' + 10;
+	else v = -1;
+	return v;
     }
    
 }
