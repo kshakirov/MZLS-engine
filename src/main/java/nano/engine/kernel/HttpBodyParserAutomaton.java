@@ -10,6 +10,8 @@ public class HttpBodyParserAutomaton {
 	PREPARE_CHUNK_CR,
 	EXPECT_CHUNK_CR,
 	EXPECT_CHUNK_LF,
+	EXPECT_FINAL_CR,
+	EXPECT_FINAL_LF,
 	PROCESS_CHUNK_LF,
 	READ_FIXED_BODY,
 	READ_CHUNK_DATA,
@@ -140,7 +142,7 @@ public class HttpBodyParserAutomaton {
 		    return;
 		}
 		case DelimiterContext.AFTER_ZERO:{
-		    currentState = State.SUCCESS;
+		    currentState = State.EXPECT_FINAL_CR;
 		    return;
 		}
 		default: {
@@ -163,6 +165,22 @@ public class HttpBodyParserAutomaton {
 	    default:{
 	    }
 	    }
+	}
+
+	case State.EXPECT_FINAL_CR:{
+	    if (currentEvent == Event.CR_ACCEPTED) {
+		currentState = State.EXPECT_FINAL_LF;
+		return;
+	    }
+	    break;
+	}
+
+	case State.EXPECT_FINAL_LF:{
+	    if (currentEvent == Event.LF_ACCEPTED) {
+		currentState = State.SUCCESS;
+		return;
+	    }
+	    break;
 	}
 
 	 
@@ -212,7 +230,9 @@ public class HttpBodyParserAutomaton {
 	}
         case State.READ_CHUNK_SIZE:{
 	    if(fragment  ==  13){
-		currentEvent = Event.CHUNK_SIZE_TERMINATED;
+		currentEvent = currentValue == 0
+		    ? Event.ZERO_CHUNK_SIZE_TERMINATED
+		    : Event.CHUNK_SIZE_TERMINATED;
 		
 	    }else if(fragment > 30 && fragment < 100){ //here all possible values for hex
 		int v = fromAsciiToHex(fragment);
@@ -241,11 +261,7 @@ public class HttpBodyParserAutomaton {
 	}
 	case EXPECT_CHUNK_CR: {
 	    if(fragment == 13) {
-		if(currentValue==0){
-		    currentEvent = Event.ZERO_CHUNK_SIZE_TERMINATED;
-		}else{   
-		    currentEvent = Event.CR_ACCEPTED;
-		}
+		currentEvent = Event.CR_ACCEPTED;
 	    }
 	    break;
 	}
@@ -254,6 +270,18 @@ public class HttpBodyParserAutomaton {
 		currentEvent = Event.LF_ACCEPTED;
 	    }else{
 	    }
+	    break;
+	}
+	case EXPECT_FINAL_CR:{
+	    currentEvent = fragment == 13
+		? Event.CR_ACCEPTED
+		: Event.INVALID_INPUT;
+	    break;
+	}
+	case EXPECT_FINAL_LF:{
+	    currentEvent = fragment == 10
+		? Event.LF_ACCEPTED
+		: Event.INVALID_INPUT;
 	    break;
 	}
 	default: {
