@@ -63,7 +63,6 @@ public class TestHttpRequestParser{
 	var wholeParser = new HttpRequestParser();
 
 	var wholeResult = wholeParser.parse(payload);
-	System.out.println(wholeResult);
 	assert(wholeResult == ParserState.FINISH);
 	var wholeArena = wholeParser.getArena();
 	var wholeArenaPtr = wholeParser.getArenaPtr();
@@ -102,32 +101,15 @@ public class TestHttpRequestParser{
 	    assert(fragmentedArena[y] == b);
 	    y += 1;
 	}
-	System.out.println("Now chunks");
 	var chunkParser = new HttpRequestParser();
 
 	var chunkParserState = chunkParser.parse(chunk1);
 	assert(chunkParserState == ParserState.NEEDS_MORE_DATA); 
-	System.out.println(chunkParserState.toString());
-	for (byte b : chunkParser.getArena()){
-	    System.out.printf("%c",b);
-	}
-	System.out.println();
  	chunkParserState = chunkParser.parse(chunk2);
 	assert(chunkParserState == ParserState.NEEDS_MORE_DATA); 
-	System.out.println(chunkParserState.toString());
-	for (byte b : chunkParser.getArena()){
-	    System.out.printf("%c",b);
-	}
-	System.out.println();
-	
 	chunkParserState = chunkParser.parse(chunk3);
 	assert(chunkParserState == ParserState.FINISH);
 	assert(chunkParser.getArenaPtr() == POSTREQUEST_SIZE);
-	System.out.println(chunkParserState.toString());
-	for (byte b : chunkParser.getArena()){
-	    System.out.printf("%c",b);
-	}
-	System.out.println();
 	int z = 0;
 	var chunkedArena = chunkParser.getArena();
 	for(byte b : POSTREQUEST_CONTENT){

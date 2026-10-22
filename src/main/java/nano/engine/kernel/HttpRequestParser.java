@@ -83,7 +83,6 @@ public class HttpRequestParser {
 		    
 		    phase = Phase.BODY;
 		}else if(wirthHttpParser.getBodyType()== BodyType.CHUNK_CONTENT){
-		    System.out.println("Chunk");
 		    automaton = new HttpBodyParserAutomaton(
 							    State.READ_CHUNK_SIZE,
 							    Event.NEED_MORE_DATA,
