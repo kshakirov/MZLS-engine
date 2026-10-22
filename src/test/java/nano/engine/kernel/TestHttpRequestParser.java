@@ -125,7 +125,6 @@ public class TestHttpRequestParser{
 	}
 	var errorParser = new HttpRequestParser();
 	var errorParserState = errorParser.parse(chunkError);
-	System.out.println(errorParserState.toString());
 	assert(errorParserState == ParserState.ERROR); 
 
 	

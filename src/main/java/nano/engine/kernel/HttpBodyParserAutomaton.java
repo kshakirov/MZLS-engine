@@ -147,11 +147,14 @@ public class HttpBodyParserAutomaton {
 		    return;
 		}
 		default: {
-
+		    currentState = State.ERROR;
+		    return;
 		}
 		}
 	    }
 	    default:{
+		currentState = State.ERROR;
+		return;
 	    }
 	    }
 	}
@@ -165,7 +168,6 @@ public class HttpBodyParserAutomaton {
 		}
 		
 	    default:{
-		System.out.println("CR ERORR ");
 		currentState = State.ERROR;
 		return;
 	    }
@@ -177,7 +179,8 @@ public class HttpBodyParserAutomaton {
 		currentState = State.EXPECT_FINAL_LF;
 		return;
 	    }
-	    break;
+	    currentState = State.ERROR;
+	    return;
 	}
 
 	case State.EXPECT_FINAL_LF:{
@@ -185,7 +188,8 @@ public class HttpBodyParserAutomaton {
 		currentState = State.SUCCESS;
 		return;
 	    }
-	    break;
+	    currentState = State.ERROR;
+	    return;
 	}
 
 	 
@@ -265,12 +269,10 @@ public class HttpBodyParserAutomaton {
 	    break;
 	}
 	case EXPECT_CHUNK_CR: {
-	    System.out.printf("Expecting cr with %c\n", fragment);
 	    if(fragment == 13) {
 		currentEvent = Event.CR_ACCEPTED;
 	    }else{
-		 System.out.printf("Wrong cr with %c\n", fragment);
-		 currentEvent = Event.INVALID_INPUT;
+		currentEvent = Event.INVALID_INPUT;
 	    }
 	    break;
 	}
@@ -278,6 +280,7 @@ public class HttpBodyParserAutomaton {
 	    if(fragment == 10){
 		currentEvent = Event.LF_ACCEPTED;
 	    }else{
+		currentEvent = Event.INVALID_INPUT;
 	    }
 	    break;
 	}

@@ -11,6 +11,10 @@ public class TestHttpBodyParserAutomaton {
     public static void main(String[] args) {
 	check("A\r\n0123456789\r\n0\r\n\r\n", "0123456789");
 	check("3\r\nabc\r\n5\r\ndefgh\r\n0\r\n\r\n", "abcdefgh");
+	checkError("1\rX");
+	checkError("1\r\naX");
+	checkError("0\r\nX");
+	checkError("0\r\n\rX");
 
 	System.out.println("Chunked body automaton scenarios: OK");
     }
@@ -39,5 +43,21 @@ public class TestHttpBodyParserAutomaton {
 	    Arrays.copyOf(arena, automaton.getArenPtr()),
 	    expected
 	);
+    }
+
+    private static void checkError(String encodedBody) {
+	byte[] arena = new byte[64];
+	var automaton = new HttpBodyParserAutomaton(
+	    State.READ_CHUNK_SIZE,
+	    Event.NEED_MORE_DATA,
+	    0,
+	    arena
+	);
+
+	for (byte b : encodedBody.getBytes(StandardCharsets.US_ASCII)) {
+	    automaton.runEngine(b);
+	}
+
+	assert automaton.getStatus() == State.ERROR;
     }
 }
