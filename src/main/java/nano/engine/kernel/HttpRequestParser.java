@@ -65,7 +65,7 @@ public class HttpRequestParser {
 		}
 	    }
 	    if(headerStatus == STATUS.FINISHED){
-	    
+		System.out.println(wirthHttpParser.getBodyType());
 		if(wirthHttpParser.getBodyType()== BodyType.FIXED_CONTENT){
 		    contentLength = wirthHttpParser.getContentLength();
 		    automaton = new HttpBodyParserAutomaton(State.READ_FIXED_BODY,
@@ -77,13 +77,29 @@ public class HttpRequestParser {
 			i += 1;
 		    }else{
 			//do nothing it will return and next time get back with the new byt
-			 phase = Phase.BODY;
-			 return ParserState.NEEDS_MORE_DATA;
+			phase = Phase.BODY;
+			return ParserState.NEEDS_MORE_DATA;
 		    }
 		    
 		    phase = Phase.BODY;
 		}else if(wirthHttpParser.getBodyType()== BodyType.CHUNK_CONTENT){
-		    //System.out.println("");
+		    System.out.println("Chunk");
+		    automaton = new HttpBodyParserAutomaton(
+							    State.READ_CHUNK_SIZE,
+							    Event.NEED_MORE_DATA,
+							    0,
+							    new byte[1024]
+							    );
+		    if(fragment.length - 1 > i){
+			i += 1;
+		    }else{
+			//do nothing it will return and next time get back with the new byt
+			phase = Phase.BODY;
+			return ParserState.NEEDS_MORE_DATA;
+		    }
+		    
+		    phase = Phase.BODY;
+
 		}else{
 		    return ParserState.FINISH;
 		}

@@ -35,6 +35,21 @@ public class TestHttpRequestParser{
 					 "User-Agent: 850\r\n" +
 					 "\r\n" +
 					 "{\"a\":1}").getBytes();
+
+
+    // Первый фрагмент: заголовки и начало чанка тела (размер в HEX, затем данные)
+    private static byte[] chunk1 = ("POST /api/v1/stream HTTP/1.1\r\n" +
+		     "Host: localhost\r\n" +
+		     "Transfer-Encoding: chunked\r\n" +
+		     "\r\n" +
+		     "2\r\n" +
+		     "{" +
+		     "\"").getBytes(java.nio.charset.StandardCharsets.UTF_8);
+
+    // Второй фрагмент: оставшаяся часть первого чанка и терминатор (0\r\n\r\n)
+    private static byte[] chunk2 = ("\r\n5\r\na\":1}\r\n" +
+		     "0\r\n" +
+		     "\r\n").getBytes(java.nio.charset.StandardCharsets.UTF_8);
     public static void main(String[] args){
 
 	final byte[] POSTREQUEST_CONTENT = ("{\"a\":1}").getBytes();
@@ -57,7 +72,7 @@ public class TestHttpRequestParser{
 	for(byte b : POSTREQUEST_CONTENT){
 	    //System.out.printf("b is %d  arena is %d", b, wholeArena[i]);
 	    assert(wholeArena[i] == b);
-	    	    i += 1;
+	    i += 1;
 	}
 	
 	var fragmentedParser = new HttpRequestParser();
@@ -85,6 +100,21 @@ public class TestHttpRequestParser{
 	    assert(fragmentedArena[y] == b);
 	    y += 1;
 	}
+	System.out.println("Now chunks");
+	var chunkParser = new HttpRequestParser();
 
+	var chunkParserState = chunkParser.parse(chunk1);
+	System.out.println(chunkParserState.toString());
+	for (byte b : chunkParser.getArena()){
+	    System.out.printf("%c",b);
+	}
+	System.out.println();
+	chunkParserState = chunkParser.parse(chunk2);
+	System.out.println(chunkParserState.toString());
+	for (byte b : chunkParser.getArena()){
+	    System.out.printf("%c",b);
+	}
+	System.out.println();
+	
     }
 }
