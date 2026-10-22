@@ -123,7 +123,10 @@ public class HttpRequestParser {
 		    //System.out.println(state + " cv " + automaton.getArenPtr() );
 		    resultState = ParserState.NEEDS_MORE_DATA;
 		 
-		}else{
+		}else if(state== State.ERROR){
+		    resultState = ParserState.ERROR;
+		}
+		else{
 		    resultState = ParserState.FINISH;
 		}
 		//System.out.println("Final automaton state is " + state);

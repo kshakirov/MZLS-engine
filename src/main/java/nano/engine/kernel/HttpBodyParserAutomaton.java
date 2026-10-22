@@ -1,6 +1,7 @@
 package nano.engine.kernel;
 
 
+
 public class HttpBodyParserAutomaton {
 
     public enum  State {
@@ -162,7 +163,11 @@ public class HttpBodyParserAutomaton {
 		delimiterContext = DelimiterContext.AFTER_DATA;
 		return  ;
 		}
+		
 	    default:{
+		System.out.println("CR ERORR ");
+		currentState = State.ERROR;
+		return;
 	    }
 	    }
 	}
@@ -260,8 +265,12 @@ public class HttpBodyParserAutomaton {
 	    break;
 	}
 	case EXPECT_CHUNK_CR: {
+	    System.out.printf("Expecting cr with %c\n", fragment);
 	    if(fragment == 13) {
 		currentEvent = Event.CR_ACCEPTED;
+	    }else{
+		 System.out.printf("Wrong cr with %c\n", fragment);
+		 currentEvent = Event.INVALID_INPUT;
 	    }
 	    break;
 	}

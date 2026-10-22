@@ -46,6 +46,13 @@ public class TestHttpRequestParser{
 		     "{" +
 		     "\"").getBytes(java.nio.charset.StandardCharsets.UTF_8);
 
+    private static byte[] chunkError = ("POST /api/v1/stream HTTP/1.1\r\n" +
+		     "Host: localhost\r\n" +
+		     "Transfer-Encoding: chunked\r\n" +
+		     "\r\n" +
+		     "4\r\n{\"a\":1}\r\n0\r\n\r\n").getBytes(java.nio.charset.StandardCharsets.UTF_8);
+
+
     // Второй фрагмент: оставшаяся часть первого чанка и терминатор (0\r\n\r\n)
     private static byte[] chunk2 = ("\r\n5\r\na").getBytes(java.nio.charset.StandardCharsets.UTF_8);
     private static byte[] chunk3 = ("\":1}\r\n" +
@@ -116,6 +123,10 @@ public class TestHttpRequestParser{
 	    assert(chunkedArena[z] == b);
 	    z += 1;
 	}
+	var errorParser = new HttpRequestParser();
+	var errorParserState = errorParser.parse(chunkError);
+	System.out.println(errorParserState.toString());
+	assert(errorParserState == ParserState.ERROR); 
 
 	
     }
