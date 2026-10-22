@@ -65,7 +65,7 @@ public class HttpRequestParser {
 		}
 	    }
 	    if(headerStatus == STATUS.FINISHED){
-		System.out.println(wirthHttpParser.getBodyType());
+
 		if(wirthHttpParser.getBodyType()== BodyType.FIXED_CONTENT){
 		    contentLength = wirthHttpParser.getContentLength();
 		    automaton = new HttpBodyParserAutomaton(State.READ_FIXED_BODY,

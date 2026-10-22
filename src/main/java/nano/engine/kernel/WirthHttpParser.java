@@ -199,7 +199,6 @@ public class WirthHttpParser{
 		    //if(this.bodyType==BodyType.FIXED_CONTENT  && payload > 47 && payload <58){
 		    fixed_content_length_acc = 0;
 		    content_length = content_length * 10 + (payload - '0');
-		    //System.out.printf(" %d content length %d \n",fixed_content_length_acc, content_length);
 		}
 		if(this.bodyType==BodyType.CHUNK_CONTENT){
 		    fixed_content_length_acc = 0;
@@ -217,12 +216,12 @@ public class WirthHttpParser{
 	case STATUS.FINISHED: {
 
 
-	    //	System.out.println("STATUS.FINISH: reading consumedBytes " + consumedBytes);
+
 	    return status;
 	}
 
 	case ERROR:{
-	    //		console.printf("STATUS.ERROR: reading \n");
+
 
 	    return status;
 	}
