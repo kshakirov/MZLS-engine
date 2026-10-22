@@ -47,9 +47,11 @@ public class TestHttpRequestParser{
 		     "\"").getBytes(java.nio.charset.StandardCharsets.UTF_8);
 
     // Второй фрагмент: оставшаяся часть первого чанка и терминатор (0\r\n\r\n)
-    private static byte[] chunk2 = ("\r\n5\r\na\":1}\r\n" +
-		     "0\r\n" +
+    private static byte[] chunk2 = ("\r\n5\r\na").getBytes(java.nio.charset.StandardCharsets.UTF_8);
+    private static byte[] chunk3 = ("\":1}\r\n" +
+				    "0\r\n" +
 		     "\r\n").getBytes(java.nio.charset.StandardCharsets.UTF_8);
+
     public static void main(String[] args){
 
 	final byte[] POSTREQUEST_CONTENT = ("{\"a\":1}").getBytes();
@@ -109,12 +111,20 @@ public class TestHttpRequestParser{
 	    System.out.printf("%c",b);
 	}
 	System.out.println();
-	chunkParserState = chunkParser.parse(chunk2);
+ 	chunkParserState = chunkParser.parse(chunk2);
 	System.out.println(chunkParserState.toString());
 	for (byte b : chunkParser.getArena()){
 	    System.out.printf("%c",b);
 	}
 	System.out.println();
+	
+	chunkParserState = chunkParser.parse(chunk3);
+	System.out.println(chunkParserState.toString());
+	for (byte b : chunkParser.getArena()){
+	    System.out.printf("%c",b);
+	}
+	System.out.println();
+
 	
     }
 }
