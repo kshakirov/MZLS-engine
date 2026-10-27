@@ -1,25 +1,27 @@
 package nano.engine.kernel;
 
-import java.io.Console;
+
 import java.io.IOException;
-import java.net.ServerSocket;
+
 import java.net.StandardProtocolFamily;
 import java.net.UnixDomainSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.io.ByteArrayOutputStream;
-import java.nio.channels.Channel;
+
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import nano.engine.kernel.SimpleHttpReqParser;
+import nano.engine.kernel.HttpRequestParser.ParserState;
+import nano.engine.kernel.HttpBodyParserAutomaton.*;;
 
 public class TestSocketServer {
 
     private Path path;
-    private Console console ;
+
 
       
     public TestSocketServer(String path){
@@ -31,15 +33,17 @@ public class TestSocketServer {
 	}catch(IOException exception){
 	    
 	}
-	this.console = System.console();
-
 
     }
     public void run()throws IOException {
 	ServerSocketChannel serChannel = ServerSocketChannel.open(StandardProtocolFamily.UNIX);
 	UnixDomainSocketAddress socketAddress = UnixDomainSocketAddress.of(path);
+	java.io.File socketFile = new java.io.File(path.toString());
 	serChannel.bind(socketAddress);
-	console.printf("Waiting ...");
+	socketFile.setWritable(true, false); // false означает "для всех", а не только для владельца
+	socketFile.setReadable(true, false);
+
+	//	console.printf("Waiting ...");
 	SocketChannel channel;
 	ExecutorService exService = Executors.newVirtualThreadPerTaskExecutor();
 	while ((channel = serChannel.accept()) != null){
@@ -52,48 +56,51 @@ public class TestSocketServer {
     class MyConnectionHandler implements Runnable{
 	private int buffSize;
 	private SocketChannel channel;
-	private Console console;
+	private HttpRequestParser httpRequestParser;
 	public MyConnectionHandler(SocketChannel channel, int buffSize){
 	    this.channel = channel;
 	    this.buffSize = buffSize;
-	    this.console = System.console();
+	    this.httpRequestParser = new HttpRequestParser();
+						     
+
 	}
 	public void run() {
+	    byte[] http200 = ("HTTP/1.1 200 OK\r\nContent-Length: 2\r\nConnection: close\r\n\r\nOK")
+		.getBytes(StandardCharsets.US_ASCII);
+	    byte[] http500 = ("HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")
+		.getBytes(StandardCharsets.US_ASCII);
 	    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 	    ByteBuffer inBuf = ByteBuffer.allocate(this.buffSize);
 	    int numBytes;
-	    long threadId = Thread.currentThread().getId();
-
-	    
-	    System.out.println("Task running on Thread ID: " + threadId);
 	    try {
 		while ((numBytes = channel.read(inBuf))  != -1) {
 		    byte[] bytes = new byte[numBytes];
 		    inBuf.flip(); 
 		    inBuf.get(bytes);
 		    outputStream.writeBytes(bytes);
-		    String message = new String(bytes); 
-		    System.out.printf("[Incoming] %s\n", message);
 		    inBuf.clear();
-		    var thisIsTheEnd = SimpleHttpReqParser.isFinished(outputStream);
-		    if(thisIsTheEnd != null){
-			console.printf("Recieved end of http req, breaking ..\n");
-			var okResp = SimpleHttpReqParser.isOK(thisIsTheEnd);
-			for( String h:thisIsTheEnd){
-			    console.printf("%s\n", h);
-			}
-			channel.write(ByteBuffer.wrap(okResp));
-			console.printf("this string will be output %s \n", new String(okResp));
+		    ParserState parserState = this.httpRequestParser.parse(bytes);
+		    if(parserState == ParserState.FINISH){
+			writeFully(http200);
 			channel.close();
 			break;
-		    }else{
-			console.printf("No end of req yet ..\n");
+		    }else if(parserState == ParserState.ERROR){
+			writeFully(http500);
+			channel.close();
+			break;
 		    }
 		    
 		}
-		console.printf("Leaving the cycle\n");
+
 	    }catch(IOException exception){
 		
+	    }
+	}
+
+	private void writeFully(byte[] response) throws IOException {
+	    ByteBuffer buffer = ByteBuffer.wrap(response);
+	    while (buffer.hasRemaining()) {
+		channel.write(buffer);
 	    }
 	}
     }

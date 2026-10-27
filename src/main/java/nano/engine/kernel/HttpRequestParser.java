@@ -1,0 +1,151 @@
+package nano.engine.kernel;
+import nano.engine.kernel.WirthHttpParser.STATUS;
+
+import nano.engine.kernel.WirthHttpParser.BodyType;
+import java.util.Arrays;
+
+
+import nano.engine.kernel.HttpBodyParserAutomaton.State;
+import nano.engine.kernel.HttpBodyParserAutomaton.Event;
+import nano.engine.kernel.HttpBodyParserAutomaton;
+
+public class HttpRequestParser {
+    public enum Phase {
+	FINISHED,
+	HEADER,
+	BODY
+	
+    }
+    public enum ParserState {
+	START,
+	FINISH,
+	ERROR,
+	NEEDS_MORE_DATA
+
+    }
+
+
+    private WirthHttpParser wirthHttpParser;
+    private byte[] arena;
+    private int arenaPtr;
+    private int contentLength;
+    private WirthHttpParser.STATUS headerStatus;
+    private HttpBodyParserAutomaton automaton;
+    private Phase phase;
+
+    
+    //    private 
+    public HttpRequestParser(){
+	this.wirthHttpParser = new WirthHttpParser();
+	//	this.automaton = automaton;
+	contentLength =0;
+	headerStatus = STATUS.REQ_METHOD;
+	phase = Phase.HEADER;
+	
+    };
+
+    public long getCotentLength(){
+	return this.contentLength;
+    };
+
+
+    public ParserState  parse(byte[] fragment){
+	//somewhere to accumulate the whole body
+	var resultState = ParserState.START;
+	int i = 0;
+	if(phase == Phase.HEADER){
+	    for (; i < fragment.length; i++){
+		headerStatus = wirthHttpParser.parse(fragment[i]);
+		
+		if(headerStatus == STATUS.FINISHED){
+
+		    break;
+		}else if(headerStatus== STATUS.ERROR){
+		    return ParserState.ERROR;
+		}
+	    }
+	    if(headerStatus == STATUS.FINISHED){
+
+		if(wirthHttpParser.getBodyType()== BodyType.FIXED_CONTENT){
+		    contentLength = wirthHttpParser.getContentLength();
+		    automaton = new HttpBodyParserAutomaton(State.READ_FIXED_BODY,
+							    Event.FIXED_BODY_BYTE_ACCEPTED,
+							    contentLength,
+							    new byte[contentLength]);
+		    //making fragment pointer to increase to body start
+		    if(fragment.length - 1 > i){
+			i += 1;
+		    }else{
+			//do nothing it will return and next time get back with the new byt
+			phase = Phase.BODY;
+			return ParserState.NEEDS_MORE_DATA;
+		    }
+		    
+		    phase = Phase.BODY;
+		}else if(wirthHttpParser.getBodyType()== BodyType.CHUNK_CONTENT){
+		    automaton = new HttpBodyParserAutomaton(
+							    State.READ_CHUNK_SIZE,
+							    Event.NEED_MORE_DATA,
+							    0,
+							    new byte[1024]
+							    );
+		    if(fragment.length - 1 > i){
+			i += 1;
+		    }else{
+			//do nothing it will return and next time get back with the new byt
+			phase = Phase.BODY;
+			return ParserState.NEEDS_MORE_DATA;
+		    }
+		    
+		    phase = Phase.BODY;
+
+		}else{
+		    return ParserState.FINISH;
+		}
+	    }else{
+		return ParserState.NEEDS_MORE_DATA;
+	    }
+	    
+	}
+
+
+	if(phase == Phase.BODY){
+	   	    
+	    for(;i < fragment.length; i++){
+		// if(fragment[i]==10){
+		//     continue;
+		// }
+		this.arena = automaton.runEngine(fragment[i]);
+		this.arenaPtr = automaton.getArenPtr();
+		var state = automaton.getStatus();
+		if(state!= State.SUCCESS && state!= State.ERROR){
+		    
+		    //System.out.println(state + " cv " + automaton.getArenPtr() );
+		    resultState = ParserState.NEEDS_MORE_DATA;
+		 
+		}else if(state== State.ERROR){
+		    resultState = ParserState.ERROR;
+		}
+		else{
+		    resultState = ParserState.FINISH;
+		}
+		//System.out.println("Final automaton state is " + state);
+		
+	    }
+	    
+	    
+	    
+	}
+
+    
+	
+	return resultState;
+    }
+
+    public byte[] getArena(){
+	return this.arena;
+    }
+    public int getArenaPtr(){
+	return this.arenaPtr;
+    }
+}
