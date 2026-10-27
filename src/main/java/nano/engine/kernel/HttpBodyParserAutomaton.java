@@ -6,14 +6,11 @@ public class HttpBodyParserAutomaton {
 
     public enum  State {
 
-	INITIAL,
 	READ_CHUNK_SIZE,
-	PREPARE_CHUNK_CR,
 	EXPECT_CHUNK_CR,
 	EXPECT_CHUNK_LF,
 	EXPECT_FINAL_CR,
 	EXPECT_FINAL_LF,
-	PROCESS_CHUNK_LF,
 	READ_FIXED_BODY,
 	READ_CHUNK_DATA,
 	SUCCESS,
@@ -21,22 +18,15 @@ public class HttpBodyParserAutomaton {
     }
 
     public enum Event{
-	NO_BODY,
-	FIXED_LENGTH_BODY,
-	CHUNKED_BODY,
 	NEED_MORE_DATA,
 	CHUNK_SIZE_DIGIT_ACCEPTED,
-	CHUNK_SIZE_OVERFLOW,
-	ZERO_CHUNK_SIZE_DETECTED,
 	ZERO_CHUNK_SIZE_TERMINATED,
 	CHUNK_SIZE_TERMINATED,
 	CR_ACCEPTED,
 	LF_ACCEPTED,
 	FIXED_BODY_BYTE_ACCEPTED,
 	CHUNK_DATA_BYTE_ACCEPTED,
-	ZERO_CHUNK_CR_REQUIRED,
-	INVALID_INPUT,
-	TIMEOUT;
+	INVALID_INPUT;
     }
 
     public enum DelimiterContext {
@@ -101,11 +91,6 @@ public class HttpBodyParserAutomaton {
 		return;
 
 	    }
-	    case Event.CHUNK_SIZE_OVERFLOW	:{
-		currentState = State.ERROR;
-		return;
-	    }
-
 	    case Event.ZERO_CHUNK_SIZE_TERMINATED:{
 		currentState = State.EXPECT_CHUNK_LF;
 		delimiterContext = DelimiterContext.AFTER_ZERO;
@@ -116,13 +101,6 @@ public class HttpBodyParserAutomaton {
 		delimiterContext = DelimiterContext.AFTER_SIZE;
 		return;
 	    }
-	    case Event.ZERO_CHUNK_SIZE_DETECTED:{
-		currentState = State.PREPARE_CHUNK_CR;
-		currentEvent= Event.ZERO_CHUNK_CR_REQUIRED;
-		return;
-
-	    }
-
 	    default:{
 	    }
 	    }
@@ -192,19 +170,6 @@ public class HttpBodyParserAutomaton {
 	    return;
 	}
 
-	 
-	case PREPARE_CHUNK_CR:{
-	    switch(currentEvent){
-	    case ZERO_CHUNK_CR_REQUIRED:{
-		currentState = State.EXPECT_CHUNK_CR;
-		return;
-	    }
-
-	    default: {
-		
-	    }
-	    }
-	}
 	default: {
 	    
 	}
