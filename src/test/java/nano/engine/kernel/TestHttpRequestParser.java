@@ -59,6 +59,14 @@ public class TestHttpRequestParser{
 				    "0\r\n" +
 		     "\r\n").getBytes(java.nio.charset.StandardCharsets.UTF_8);
 
+    private static byte[] chunkedRequest = ("POST /api/v1/stream HTTP/1.1\r\n" +
+				     "Host: localhost\r\n" +
+				     "Transfer-Encoding: chunked\r\n" +
+				     "\r\n" +
+				     "2\r\n{\"\r\n" +
+				     "5\r\na\":1}\r\n" +
+				     "0\r\n\r\n").getBytes(java.nio.charset.StandardCharsets.UTF_8);
+
     public static void main(String[] args){
 
 	final byte[] POSTREQUEST_CONTENT = ("{\"a\":1}").getBytes();
@@ -126,6 +134,16 @@ public class TestHttpRequestParser{
 	var errorParser = new HttpRequestParser();
 	var errorParserState = errorParser.parse(chunkError);
 	assert(errorParserState == ParserState.ERROR); 
+
+	var bytewiseChunkParser = new HttpRequestParser();
+	var bytewiseChunkState = ParserState.START;
+	var oneByte = new byte[1];
+	for (byte b : chunkedRequest) {
+	    oneByte[0] = b;
+	    bytewiseChunkState = bytewiseChunkParser.parse(oneByte);
+	}
+	assert(bytewiseChunkState == ParserState.FINISH);
+	assert(bytewiseChunkParser.getArenaPtr() == POSTREQUEST_SIZE);
 
 	
     }
