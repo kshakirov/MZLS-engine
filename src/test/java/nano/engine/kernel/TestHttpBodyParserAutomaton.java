@@ -12,6 +12,7 @@ public class TestHttpBodyParserAutomaton {
 	check("A\r\n0123456789\r\n0\r\n\r\n", "0123456789");
 	check("3\r\nabc\r\n5\r\ndefgh\r\n0\r\n\r\n", "abcdefgh");
 	checkError("1\rX");
+	checkError("\n");
 	checkError("1\r\naX");
 	checkError("0\r\nX");
 	checkError("0\r\n\rX");

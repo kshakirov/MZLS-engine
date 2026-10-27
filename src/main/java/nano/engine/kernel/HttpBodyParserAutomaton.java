@@ -218,7 +218,7 @@ public class HttpBodyParserAutomaton {
 		    break;
 		}
 	    }else{
-		//error or malformed
+		currentState = State.ERROR;
 	    }
 
 	    break; 
