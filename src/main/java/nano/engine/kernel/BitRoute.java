@@ -51,7 +51,7 @@ public class BitRoute {
 		case State.FillingSegment:{
 		    //write to bytearray the hash
 		    //by segment offset
-		    segmentEnd = i - 1;
+		    segmentEnd = i;
 		    var hash = hash16(url,segmentStart, segmentEnd);
 		    var mask_offset =  segmentCount * 8 + 8 ;
 		    var mask =(byte) 0xFFFF;
@@ -119,7 +119,7 @@ public class BitRoute {
 		switch(state){
 		case State.SegmentStart:{
 		    state = State.FillingSegment;
-		    segmentStart = i - 1;
+		    segmentStart = i;
 		    recordSize += 1;
 		    //we can write directly to byte array
 		    break;
@@ -139,7 +139,7 @@ public class BitRoute {
 	    }
 	};
 	if(state == State.FillingSegment){
-	    var hash = hash16(url,segmentStart, segmentEnd);
+	    var hash = hash16(url,segmentStart, url.length);
 	    var mask_offset =  segmentCount * 8 + 8 ;
 	    var mask =(byte) 0xFFFF;
 	    var hash_offset = mask_offset + 1;
