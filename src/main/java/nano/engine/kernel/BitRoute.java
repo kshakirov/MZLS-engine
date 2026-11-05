@@ -103,6 +103,10 @@ public class BitRoute {
 		    //write mask
 		    //write segment hash 0
 		    //we forgot about value of parameter
+		    var mask_offset =  segmentCount * 8 + 8 ;
+		    var mask =(byte) 0x0;
+		    System.out.printf("Parameter: sc = %d, mask_offset=%d\n", segmentCount,mask_offset);
+		    tape[mask_offset] = mask;
 		    state = State.ParameterEnd;
 		}else{
 
@@ -135,11 +139,29 @@ public class BitRoute {
 	    }
 	};
 	if(state == State.FillingSegment){
+	    var hash = hash16(url,segmentStart, segmentEnd);
+	    var mask_offset =  segmentCount * 8 + 8 ;
+	    var mask =(byte) 0xFFFF;
+	    var hash_offset = mask_offset + 1;
+	    writeIntToByteArray(hash,hash_offset);
+	    System.out.printf("The end: Segment sc = %d, mask_offset=%d, hash %d, hash_offset = %d\n", segmentCount,mask_offset, hash, hash_offset);
+	    tape[mask_offset] = mask;
 	    segmentCount += 1;
 	    tape[2]=segmentCount;
 	    state = State.SegmentEnd;
 
+	}else if(state== State.FillingParameter){
+	    var mask_offset =  segmentCount * 8 + 8 ;
+	    var mask =(byte) 0x0;
+	    System.out.printf("The end: Parameter: sc = %d, mask_offset=%d\n", segmentCount,mask_offset);
+	    tape[mask_offset] = mask;
+
+	    
 	}
+	short recordSize  = (short) (8 + segmentCount    + segmentCount * 2);
+	System.out.printf("record size = %d\n", recordSize);
+	tape[0] = (byte) (recordSize >> 8);
+	tape[1] = (byte) recordSize;
 	
     }
     private int hash16(byte[] data, int start, int end) {
@@ -155,7 +177,7 @@ public class BitRoute {
 
     private void writeIntToByteArray(int word, int offset){
 	for (int i =1; i<= 4;i++){
-	    this.tape[i + offset] = (byte) (word >> (32 -  8*i));   
+	    this.tape[i + offset - 1] = (byte) (word >> (32 -  8*i));   
 	}
     }
     
