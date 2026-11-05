@@ -4,7 +4,10 @@ import nano.engine.kernel.BitRoute;
 
 
 
+
 public class TestBitRoute {
+
+
 
     public static void main(String[] argv){
 	System.out.println("Testing BitRoute");
@@ -13,5 +16,9 @@ public class TestBitRoute {
 	var tape = bitRouter.getTape();
 	System.out.printf("%d\n", tape[2]);
 	assert(tape[2]==4);
+	System.out.printf("%d\n", tape[8]);
+	assert(tape[8]==-1);
+	
+	
     }
 }

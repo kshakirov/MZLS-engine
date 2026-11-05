@@ -53,9 +53,18 @@ public class BitRoute {
 		    //by segment offset
 		    segmentEnd = i - 1;
 		    var hash = hash16(url,segmentStart, segmentEnd);
+		    var mask_offset =  segmentCount * 8 + 8 ;
+		    var mask =(byte) 0xFFFF;
+		    var hash_offset = mask_offset + 1;
+		    writeIntToByteArray(hash,hash_offset);
+		    System.out.printf("sc = %d, mask_offset=%d, hash %d, hash_offset = %d\n", segmentCount,mask_offset, hash, hash_offset);
+		    tape[mask_offset] = mask;
+		    
 		    state = State.SegmentStart;
 		    segmentCount += 1;
 		    tape[2]=segmentCount;
+
+
 		    break;
 
 		}
@@ -106,7 +115,7 @@ public class BitRoute {
 		switch(state){
 		case State.SegmentStart:{
 		    state = State.FillingSegment;
-		    segmentStart = i;
+		    segmentStart = i - 1;
 		    recordSize += 1;
 		    //we can write directly to byte array
 		    break;
@@ -142,6 +151,12 @@ public class BitRoute {
 	}
 
 	return hash & 0xFFFF;
+    }
+
+    private void writeIntToByteArray(int word, int offset){
+	for (int i =1; i<= 4;i++){
+	    this.tape[i + offset] = (byte) (word >> (32 -  8*i));   
+	}
     }
     
 }
