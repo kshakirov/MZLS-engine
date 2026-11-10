@@ -156,6 +156,10 @@ public class BitRoute {
 	    tape[nextFreeOffset + 2]=segmentCount;
 	    state = State.SegmentEnd;
 
+	}else if(state== State.ParameterEnd){
+	    segmentCount += 1;
+	    tape[nextFreeOffset + 2] = segmentCount;
+	    state = State.SegmentEnd;
 	}else if(state== State.FillingParameter){
 	    var mask_offset =  nextFreeOffset + segmentCount * 5 + recordHeaderEnd ;
 	    var mask =(byte) 0x0;

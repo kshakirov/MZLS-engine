@@ -35,5 +35,8 @@ public class TestBitRoute {
 	bitRouter.parseUrl("/user/home/free/me".getBytes());
 	assert(32 == (int)(tape[33]));
 	assert(bitRouter.getNextFreeOffset() == 64);
+	bitRouter.parseUrl("/user/{id}".getBytes());
+	assert(tape[66] == 2);
+	assert(bitRouter.getNextFreeOffset() == 86);
     }
 }
