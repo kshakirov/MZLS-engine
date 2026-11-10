@@ -20,11 +20,13 @@ public class BitRoute {
 	this.segmentCount =0;
 	this.recordSize=0;
 	this.tape = new byte[128];
+	this.nextFreeOffset=0;
 	
     }
     private State state;
     private byte segmentCount;
     private int recordSize;
+    private int nextFreeOffset;
     private long[]  mask;
     private byte[] tape;
     private int segmentStart =0;
@@ -33,9 +35,12 @@ public class BitRoute {
     public byte[] getTape() {
 	return tape;
     }
+    public int getNextFreeOffset(){
+	return this.nextFreeOffset;
+    }
     public  void parseUrl(byte[] url){
 	
-	
+	this.segmentCount = 0;
 	for (int i = 0; i < url.length; i++){
 	    System.out.printf("%s %c\n", state , url[i]);
 	    switch(url[i]){
@@ -54,7 +59,7 @@ public class BitRoute {
 		    //by segment offset
 		    segmentEnd = i;
 		    var hash = hash16(url,segmentStart, segmentEnd);
-		    var mask_offset =  segmentCount * 5 + recordHeaderEnd ;
+		    var mask_offset = nextFreeOffset +   segmentCount * 5 + recordHeaderEnd ;
 		    var mask =(byte) 0xFFFF;
 		    var hash_offset = mask_offset + 1;
 		    writeIntToByteArray(hash,hash_offset);
@@ -63,7 +68,7 @@ public class BitRoute {
 		    
 		    state = State.SegmentStart;
 		    segmentCount += 1;
-		    tape[2]=segmentCount;
+		    tape[nextFreeOffset + 2]=segmentCount;
 
 
 		    break;
@@ -72,7 +77,7 @@ public class BitRoute {
 		case State.ParameterEnd: {
 		    state = State.SegmentStart;
 		    segmentCount += 1;
-		    tape[2]=segmentCount;
+		    tape[nextFreeOffset + 2]=segmentCount;
 
 		}
 		
@@ -104,7 +109,7 @@ public class BitRoute {
 		    //write mask
 		    //write segment hash 0
 		    //we forgot about value of parameter
-		    var mask_offset =  segmentCount * 5 + recordHeaderEnd ;
+		    var mask_offset =  nextFreeOffset + segmentCount * 5 + recordHeaderEnd ;
 		    var mask =(byte) 0x0;
 		    System.out.printf("Parameter: sc = %d, mask_offset=%d\n", segmentCount,mask_offset);
 		    tape[mask_offset] = mask;
@@ -140,19 +145,19 @@ public class BitRoute {
 	    }
 	};
 	if(state == State.FillingSegment){
-	    var hash = hash16(url,segmentStart, url.length);
-	    var mask_offset =  segmentCount * 5 + recordHeaderEnd ;
+	    var hash = hash16(url,segmentStart, url.length); 
+	    var mask_offset =  nextFreeOffset + segmentCount * 5 + recordHeaderEnd ;
 	    var mask =(byte) 0xFFFF;
 	    var hash_offset = mask_offset + 1;
 	    writeIntToByteArray(hash,hash_offset);
 	    System.out.printf("The end: Segment sc = %d, mask_offset=%d, hash %d, hash_offset = %d\n", segmentCount,mask_offset, hash, hash_offset);
 	    tape[mask_offset] = mask;
 	    segmentCount += 1;
-	    tape[2]=segmentCount;
+	    tape[nextFreeOffset + 2]=segmentCount;
 	    state = State.SegmentEnd;
 
 	}else if(state== State.FillingParameter){
-	    var mask_offset =  segmentCount * 5 + recordHeaderEnd ;
+	    var mask_offset =  nextFreeOffset + segmentCount * 5 + recordHeaderEnd ;
 	    var mask =(byte) 0x0;
 	    System.out.printf("The end: Parameter: sc = %d, mask_offset=%d\n", segmentCount,mask_offset);
 	    tape[mask_offset] = mask;
@@ -161,8 +166,11 @@ public class BitRoute {
 	}
 	short recordSize  = (short) (recordHeaderEnd + segmentCount * 5);
 	System.out.printf("record size = %d\n", recordSize);
-	tape[0] = (byte) (recordSize >> 8);
-	tape[1] = (byte) recordSize;
+	tape[nextFreeOffset] = (byte) (recordSize >> 8);
+	tape[nextFreeOffset + 1] = (byte) recordSize;
+	nextFreeOffset += recordSize;
+	this.state = State.SegmentStart;
+	
 	
     }
     private int hash16(byte[] data, int start, int end) {

@@ -15,7 +15,7 @@ public class TestBitRoute {
 	    result |= t;
 	}
 	return result;
-    }
+    } 
 
     
     public static void main(String[] argv){
@@ -31,6 +31,9 @@ public class TestBitRoute {
 	assert(32 == (int)(tape[1]));
 	assert(24306 ==readIntFromByteArray(tape, 13));
 	assert(10919 ==readIntFromByteArray(tape, 28));
-	
+	assert(bitRouter.getNextFreeOffset() == 32);
+	bitRouter.parseUrl("/user/home/free/me".getBytes());
+	assert(32 == (int)(tape[33]));
+	assert(bitRouter.getNextFreeOffset() == 64);
     }
 }
