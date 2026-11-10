@@ -28,7 +28,7 @@ public class TestBitRoute {
 	System.out.printf("%d\n", tape[5]);
 	assert(tape[12]==-1);
 	System.out.printf(" record size = %d, %d\n", tape[1], tape[0]);
-	assert(36 == (int)(tape[1]));
+	assert(32 == (int)(tape[1]));
 	assert(24306 ==readIntFromByteArray(tape, 13));
 	assert(10919 ==readIntFromByteArray(tape, 28));
 	

@@ -159,7 +159,7 @@ public class BitRoute {
 
 	    
 	}
-	short recordSize  = (short) (recordHeaderEnd + segmentCount    + segmentCount * 5);
+	short recordSize  = (short) (recordHeaderEnd + segmentCount * 5);
 	System.out.printf("record size = %d\n", recordSize);
 	tape[0] = (byte) (recordSize >> 8);
 	tape[1] = (byte) recordSize;
