@@ -25,12 +25,12 @@ public class TestBitRoute {
 	var tape = bitRouter.getTape();
 	System.out.printf("%d\n", tape[2]);
 	assert(tape[2]==4);
-	System.out.printf("%d\n", tape[8]);
-	assert(tape[8]==-1);
+	System.out.printf("%d\n", tape[5]);
+	assert(tape[12]==-1);
 	System.out.printf(" record size = %d, %d\n", tape[1], tape[0]);
-	assert(20 == (int)(tape[1]));
-	assert(24306 ==readIntFromByteArray(tape, 9));
-	assert(10919 ==readIntFromByteArray(tape, 33));
+	assert(36 == (int)(tape[1]));
+	assert(24306 ==readIntFromByteArray(tape, 13));
+	assert(10919 ==readIntFromByteArray(tape, 28));
 	
     }
 }

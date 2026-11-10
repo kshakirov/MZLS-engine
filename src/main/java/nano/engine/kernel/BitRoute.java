@@ -29,6 +29,7 @@ public class BitRoute {
     private byte[] tape;
     private int segmentStart =0;
     private int segmentEnd =0;
+    private int recordHeaderEnd = 12;
     public byte[] getTape() {
 	return tape;
     }
@@ -53,7 +54,7 @@ public class BitRoute {
 		    //by segment offset
 		    segmentEnd = i;
 		    var hash = hash16(url,segmentStart, segmentEnd);
-		    var mask_offset =  segmentCount * 8 + 8 ;
+		    var mask_offset =  segmentCount * 5 + recordHeaderEnd ;
 		    var mask =(byte) 0xFFFF;
 		    var hash_offset = mask_offset + 1;
 		    writeIntToByteArray(hash,hash_offset);
@@ -103,7 +104,7 @@ public class BitRoute {
 		    //write mask
 		    //write segment hash 0
 		    //we forgot about value of parameter
-		    var mask_offset =  segmentCount * 8 + 8 ;
+		    var mask_offset =  segmentCount * 5 + recordHeaderEnd ;
 		    var mask =(byte) 0x0;
 		    System.out.printf("Parameter: sc = %d, mask_offset=%d\n", segmentCount,mask_offset);
 		    tape[mask_offset] = mask;
@@ -140,7 +141,7 @@ public class BitRoute {
 	};
 	if(state == State.FillingSegment){
 	    var hash = hash16(url,segmentStart, url.length);
-	    var mask_offset =  segmentCount * 8 + 8 ;
+	    var mask_offset =  segmentCount * 5 + recordHeaderEnd ;
 	    var mask =(byte) 0xFFFF;
 	    var hash_offset = mask_offset + 1;
 	    writeIntToByteArray(hash,hash_offset);
@@ -151,14 +152,14 @@ public class BitRoute {
 	    state = State.SegmentEnd;
 
 	}else if(state== State.FillingParameter){
-	    var mask_offset =  segmentCount * 8 + 8 ;
+	    var mask_offset =  segmentCount * 5 + recordHeaderEnd ;
 	    var mask =(byte) 0x0;
 	    System.out.printf("The end: Parameter: sc = %d, mask_offset=%d\n", segmentCount,mask_offset);
 	    tape[mask_offset] = mask;
 
 	    
 	}
-	short recordSize  = (short) (8 + segmentCount    + segmentCount * 2);
+	short recordSize  = (short) (recordHeaderEnd + segmentCount    + segmentCount * 5);
 	System.out.printf("record size = %d\n", recordSize);
 	tape[0] = (byte) (recordSize >> 8);
 	tape[1] = (byte) recordSize;
