@@ -38,7 +38,7 @@ public class BitRoute {
     public int getNextFreeOffset(){
 	return this.nextFreeOffset;
     }
-    public  void parseUrl(byte[] url){
+    public  void decode(byte[] url){
 	
 	this.segmentCount = 0;
 	for (int i = 0; i < url.length; i++){

@@ -21,7 +21,7 @@ public class TestBitRoute {
     public static void main(String[] argv){
 	System.out.println("Testing BitRoute");
 	var bitRouter = new BitRoute();
-	bitRouter.parseUrl("/user/{id}/help/me".getBytes());
+	bitRouter.decode("/user/{id}/help/me".getBytes());
 	var tape = bitRouter.getTape();
 	System.out.printf("%d\n", tape[2]);
 	assert(tape[2]==4);
@@ -32,10 +32,10 @@ public class TestBitRoute {
 	assert(24306 ==readIntFromByteArray(tape, 13));
 	assert(10919 ==readIntFromByteArray(tape, 28));
 	assert(bitRouter.getNextFreeOffset() == 32);
-	bitRouter.parseUrl("/user/home/free/me".getBytes());
+	bitRouter.decode("/user/home/free/me".getBytes());
 	assert(32 == (int)(tape[33]));
 	assert(bitRouter.getNextFreeOffset() == 64);
-	bitRouter.parseUrl("/user/{id}".getBytes());
+	bitRouter.decode("/user/{id}".getBytes());
 	assert(tape[66] == 2);
 	assert(bitRouter.getNextFreeOffset() == 86);
     }
