@@ -54,7 +54,7 @@ public class BitRoute {
 	    int rs = (int) compiledTape[nextRecordOffset + 1];
 	    if(rs > 0){
 		System.out.printf("The record size is %d\n", rs);
-		nextRecordOffset = nextRecordOffset + rs;
+
 		var current_segment_count = compiledTape[nextRecordOffset + 2];
 		System.out.printf("Segments current %d vs decode url %d\n", current_segment_count, decode_segment_count);
 		if(current_segment_count == decode_segment_count){
@@ -64,6 +64,7 @@ public class BitRoute {
 			System.out.printf("Hash current %d vs decode Hash %d\n", currentHash, decodeHash);
 		    }
 		}
+		nextRecordOffset = nextRecordOffset + rs;
 		System.out.printf("Current jump to %d, tape length %d\n ", nextRecordOffset, compiledTape.length);
 	    }else{
 		moreRecords = false;
