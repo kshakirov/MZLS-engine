@@ -20,9 +20,9 @@ public class TestBitRoute {
     
     public static void main(String[] argv){
 	System.out.println("Testing BitRoute");
-	var bitRouter = new BitRoute();
+	var bitRouter = new BitRoute(true);
 	bitRouter.encode("/user/{id}/help/me".getBytes());
-	var tape = bitRouter.getTape();
+	var tape = bitRouter.getEncodeTape();
 	System.out.printf("%d\n", tape[2]);
 	assert(tape[2]==4);
 	System.out.printf("%d\n", tape[5]);
@@ -38,5 +38,9 @@ public class TestBitRoute {
 	bitRouter.encode("/user/{id}".getBytes());
 	assert(tape[66] == 2);
 	assert(bitRouter.getNextFreeOffset() == 86);
+	var bitRouterDecoder = new BitRoute(false);
+	System.out.println(tape[0]);
+	bitRouterDecoder.decode("/user/{id}/help/me".getBytes(),tape);
+	
     }
 }
