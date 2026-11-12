@@ -59,9 +59,17 @@ public class BitRoute {
 		System.out.printf("Segments current %d vs decode url %d\n", current_segment_count, decode_segment_count);
 		if(current_segment_count == decode_segment_count){
 		    for(int i =0;i < decode_segment_count;i++){
+			var decodeMask = decodeTape[12 + i*5];
+			var currentMask =  compiledTape[nextRecordOffset + 12 + i *5];
+			System.out.printf("Mask current %d vs decode Mask %d\n", currentMask, decodeMask);
 			var decodeHash = readIntFromByteArray(decodeTape, 13 + i * 5);
 			var currentHash = readIntFromByteArray(compiledTape,nextRecordOffset + 13 + i * 5 );
-			System.out.printf("Hash current %d vs decode Hash %d\n", currentHash, decodeHash);
+			if(decodeMask == currentMask){
+
+			    System.out.printf("Hash current %d vs decode Hash %d\n", currentHash, decodeHash);
+			}else{
+			    System.out.printf("Not comparing here might be a parameter instead of   decode Hash %d\n", decodeHash);
+			}
 		    }
 		}
 		nextRecordOffset = nextRecordOffset + rs;
