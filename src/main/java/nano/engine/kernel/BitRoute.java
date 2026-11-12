@@ -232,7 +232,7 @@ public class BitRoute {
     }
 
     private int readRecordSize(byte left, byte right){
-	System.out.printf("l is %d, r is %d\n", left,right);
+	//System.out.printf("l is %d, r is %d\n", left,right);
 	int rs = right << 8;
 	rs |= left;
 	return rs;
@@ -242,7 +242,7 @@ public class BitRoute {
 	int result = 0;
 	for (int i =1; i<= 4;i++){
 	    int t=  (tape[i + offset -1] & 0xFF) << (32 -  8*i);
-	    System.out.printf("i = %d, result = %d\n",t,result);
+	    //System.out.printf("i = %d, result = %d\n",t,result);
 	    result |= t;
 	}
 	return result;

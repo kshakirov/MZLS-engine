@@ -11,7 +11,7 @@ public class TestBitRoute {
 	int result = 0;
 	for (int i =1; i<= 4;i++){
 	    int t=  (tape[i + offset -1] & 0xFF) << (32 -  8*i);
-	    System.out.printf("i = %d, result = %d\n",t,result);
+	    //System.out.printf("i = %d, result = %d\n",t,result);
 	    result |= t;
 	}
 	return result;
@@ -40,7 +40,7 @@ public class TestBitRoute {
 	assert(bitRouter.getNextFreeOffset() == 86);
 	var bitRouterDecoder = new BitRoute(false);
 	System.out.println(tape[0]);
-	bitRouterDecoder.decode("/user/{id}/help/me".getBytes(),tape);
+	bitRouterDecoder.decode("/user/1/help/me".getBytes(),tape);
 	
     }
 }
