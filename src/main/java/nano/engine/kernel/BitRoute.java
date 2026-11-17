@@ -15,7 +15,7 @@ public class BitRoute {
 	Error
     }
 
-    public BitRoute (boolean encode){
+    public BitRoute (boolean encode,int records){
 	this.state = State.SegmentStart;
 	this.segmentCount =0;
 	this.recordSize =0;
@@ -23,6 +23,10 @@ public class BitRoute {
 	    this.encodeTape = new byte[128];
 	}else{
 	    this.decodeTape = new byte[128];
+	    this.matchedRecordOffsets = new int[records];
+	    for(int i =0; i < records;i++){
+		this.matchedRecordOffsets[i] = -1;
+	    }
 	}
 	this.nextFreeOffset=0;
 	
@@ -37,47 +41,64 @@ public class BitRoute {
     private int segmentStart =0;
     private int segmentEnd =0;
     private int recordHeaderEnd = 12;
+    private int[] matchedRecordOffsets;
     public byte[] getEncodeTape() {
 	return encodeTape;
     }
     public int getNextFreeOffset(){
 	return this.nextFreeOffset;
     }
+    public int[] getMatches(){
+	return this.matchedRecordOffsets;
+    }
     public void decode(byte[] url, byte[] compiledTape){
 	code( url, decodeTape);
 	int decode_segment_count = this.decodeTape[2];
+
+	int currentEncodedRecordIndex =0;
 	var nextRecordOffset = 0;
 	var moreRecords = true;
 	while (nextRecordOffset < compiledTape.length  && moreRecords) {
-	    var current_record_offset = compiledTape[nextRecordOffset];
+	    boolean bingo = true;
+	   
 	    //	    int rs = readRecordSize(compiledTape[nextRecordOffset], compiledTape[nextRecordOffset + 1]);
 	    int rs = (int) compiledTape[nextRecordOffset + 1];
 	    if(rs > 0){
-		System.out.printf("The record size is %d\n", rs);
+		//System.out.printf("The record size is %d\n", rs);
 
 		var current_segment_count = compiledTape[nextRecordOffset + 2];
-		System.out.printf("Segments current %d vs decode url %d\n", current_segment_count, decode_segment_count);
+	
 		if(current_segment_count == decode_segment_count){
+		    // System.out.printf("Segments current %d vs decode url %d\n", current_segment_count, decode_segment_count);
 		    for(int i =0;i < decode_segment_count;i++){
 			var decodeMask = decodeTape[12 + i*5];
 			var currentMask =  compiledTape[nextRecordOffset + 12 + i *5];
-			System.out.printf("Mask current %d vs decode Mask %d\n", currentMask, decodeMask);
+			//	System.out.printf("Mask current %d vs decode Mask %d\n", currentMask, decodeMask);
 			var decodeHash = readIntFromByteArray(decodeTape, 13 + i * 5);
 			var currentHash = readIntFromByteArray(compiledTape,nextRecordOffset + 13 + i * 5 );
-			if(decodeMask == currentMask){
+			if((currentMask & decodeHash) == (currentMask & currentHash)){
 
-			    System.out.printf("Hash current %d vs decode Hash %d\n", currentHash, decodeHash);
+			    //  	    System.out.printf("Hashes AND with masks match: %d = %d\n", currentHash, decodeHash);
 			}else{
-			    System.out.printf("Not comparing here might be a parameter instead of   decode Hash %d\n", decodeHash);
+			    //System.out.printf("Hashes do not match encoded %d vs decoded %d\n", currentHash, decodeHash);
+			    bingo = false;
+			    break;
 			}
 		    }
+		}else{
+		    bingo =false;
+		}
+		if(bingo){
+		    this.matchedRecordOffsets[currentEncodedRecordIndex]= nextRecordOffset;
+		    //System.out.printf("Matches record with offset %d\n", current_record_offset);
 		}
 		nextRecordOffset = nextRecordOffset + rs;
-		System.out.printf("Current jump to %d, tape length %d\n ", nextRecordOffset, compiledTape.length);
+	
+		//System.out.printf("Current jump to %d, tape length %d\n ", nextRecordOffset, compiledTape.length);
 	    }else{
 		moreRecords = false;
 	    }
-	    
+	    currentEncodedRecordIndex += 1;   
 	}
     }
 
