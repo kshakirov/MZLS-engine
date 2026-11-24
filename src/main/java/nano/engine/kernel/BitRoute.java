@@ -44,6 +44,7 @@ public class BitRoute {
     private int segmentEnd =0;
     private int recordHeaderEnd = 12;
     private int[] matchedRecordOffsets;
+    private byte[][][] compiledSymbols;
     public byte[] getEncodeTape() {
 	return encodeTape;
     }
@@ -284,7 +285,23 @@ public class BitRoute {
 	}
 	return result;
     }
-
+    public void compileSymbols(){
+	this.compiledSymbols = new byte[symbols.size()][][];
+	int routeIndex =0;
+	for (ArrayList<ArrayList<Byte>> route : symbols){
+	    this.compiledSymbols[routeIndex] = new byte[route.size()][];
+	    for(int i =0; i< route.size();i++){
+		ArrayList<Byte>  segment = route.get(i);
+		
+		this.compiledSymbols[routeIndex][i] = new byte[segment.size()];
+		for(int y = 0;y < segment.size();y++){
+		    this.compiledSymbols[routeIndex][i][y]= segment.get(y);
+		}
+	    }
+	    routeIndex += 1;
+	}
+	                          
+    }
     public void encodeSymbols(byte[] url, int routeIndex){
 	ArrayList<ArrayList<Byte>> symbolsByteArray = new ArrayList<>();
 	var skip = false; 

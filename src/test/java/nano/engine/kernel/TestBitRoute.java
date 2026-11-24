@@ -53,6 +53,7 @@ public class TestBitRoute {
 	assert(symbols.get(0).get(0).size() == 4);
 	assert(symbols.get(0).get(1).size() == 1);
 	assert(symbols.get(0).get(3).size() == 2);
+	bitRouter.compileSymbols();
 	
 	
     }
