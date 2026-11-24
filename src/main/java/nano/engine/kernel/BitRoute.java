@@ -1,6 +1,7 @@
 package nano.engine.kernel;
 
 
+import java.util.ArrayList;
 
 public class BitRoute {
 
@@ -21,6 +22,7 @@ public class BitRoute {
 	this.recordSize =0;
 	if (encode){
 	    this.encodeTape = new byte[128];
+	    this.symbols = new ArrayList<>();
 	}else{
 	    this.decodeTape = new byte[128];
 	    this.matchedRecordOffsets = new int[records];
@@ -45,11 +47,15 @@ public class BitRoute {
     public byte[] getEncodeTape() {
 	return encodeTape;
     }
+    private ArrayList<ArrayList<ArrayList<Byte>>> symbols;
     public int getNextFreeOffset(){
 	return this.nextFreeOffset;
     }
     public int[] getMatches(){
 	return this.matchedRecordOffsets;
+    }
+    public ArrayList<ArrayList<ArrayList<Byte>>> getSymbolsArrayList(){
+	return this.symbols;
     }
     public void decode(byte[] url, byte[] compiledTape){
 	code( url, decodeTape);
@@ -104,6 +110,7 @@ public class BitRoute {
 
     public void encode(byte[] url){
 	code(url, encodeTape);
+	System.out.println("");
     }
     private  void code(byte[] url, byte[] tape) {
 	
@@ -276,6 +283,42 @@ public class BitRoute {
 	    result |= t;
 	}
 	return result;
-    } 
+    }
+
+    public void encodeSymbols(byte[] url, int routeIndex){
+	ArrayList<ArrayList<Byte>> symbolsByteArray = new ArrayList<>();
+	var skip = false; 
+	ArrayList<Byte> temp= null;
+	for (byte u : url ){
+	    switch(u){
+	    case  47: {
+		if(temp!= null){
+		    symbolsByteArray.add(temp);
+		}
+		temp = new ArrayList<Byte>();
+		break;
+	    }
+	    case 123: {
+		skip = true;
+		temp.add((byte) 123);
+		break;
+	    }
+	    case 125:{
+		skip = false;
+		break;
+	    }
+	    default: {
+		if(!skip){
+		    temp.add(u);
+		}
+	    }
+		
+	    }
+	}
+	if(temp.size() > 0){
+	    symbolsByteArray.add(temp);
+	}
+	this.symbols.add(symbolsByteArray);
+    }
     
 }

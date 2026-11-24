@@ -44,6 +44,15 @@ public class TestBitRoute {
 	assert(bitRouterDecoder.getMatches().length == 3);
 	assert(bitRouterDecoder.getMatches()[0] == 0);
 	assert(bitRouterDecoder.getMatches()[1] == -1);
+	bitRouter.encodeSymbols("/user/{id}/must/be".getBytes(),1);
+	var symbols = bitRouter.getSymbolsArrayList();
+	System.out.printf("%d\n", symbols.size());
+	assert(symbols.size() == 1);
+
+	assert(symbols.get(0).size() == 4);
+	assert(symbols.get(0).get(0).size() == 4);
+	assert(symbols.get(0).get(1).size() == 1);
+	assert(symbols.get(0).get(3).size() == 2);
 	
 	
     }
