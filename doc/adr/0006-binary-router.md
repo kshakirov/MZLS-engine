@@ -22,6 +22,12 @@ linear allocation. `nextFreeOffset` identifies the first unused byte. Each
 record contains a 12-byte header followed by five bytes per segment: one mask
 byte and four bytes of hash storage.
 
+The mutable registration tape may have spare capacity. When registration is
+finished, only its occupied half-open range `[0, nextFreeOffset)` is copied into
+the compiled tape. Therefore `compiledTape.length` is the exact logical length
+used by lookup; unused capacity and a zero-valued sentinel are not part of the
+binary format.
+
 Candidate lookup proceeds in two stages:
 
 1. Filter records by segment count and compare segment hashes under the route
@@ -59,6 +65,7 @@ reject hash collisions.
 - Lookup can operate on primitive arrays, indices, and offsets.
 - Registration may allocate temporary boxed collections; they are not the
   runtime lookup representation.
+- Freezing performs one allocation and one copy outside the lookup path.
 - Hash matches produce candidates, not final matches.
 - Candidate precedence and parameter delivery remain separate decisions.
 - Registration must finish and symbols must be frozen before lookup.
@@ -85,6 +92,12 @@ reject hash collisions.
 ленту `byte[]` посредством линейного выделения памяти. `nextFreeOffset`
 указывает на первый свободный байт. Каждая запись содержит 12-байтовый заголовок
 и пять байтов на сегмент: один байт маски и четыре байта поля хэша.
+
+Рабочая лента регистрации может иметь свободную ёмкость. После завершения
+регистрации в скомпилированную ленту копируется только занятый полуинтервал
+`[0, nextFreeOffset)`. Поэтому `compiledTape.length` является точной логической
+длиной для поиска; незанятая ёмкость и нулевой терминатор не входят в бинарный
+формат.
 
 Поиск кандидатов выполняется в два этапа:
 
@@ -123,6 +136,7 @@ reject hash collisions.
 - Поиск может работать только с массивами примитивов, индексами и смещениями.
 - При регистрации допустимы временные boxed-коллекции; они не входят в
   представление горячего пути.
+- Заморозка выполняет одну аллокацию и одно копирование вне горячего пути.
 - Совпадение хэшей даёт кандидата, а не окончательное совпадение.
 - Приоритет кандидатов и передача параметров остаются отдельными решениями.
 - До начала поиска регистрация должна завершиться, а символы — заморозиться.

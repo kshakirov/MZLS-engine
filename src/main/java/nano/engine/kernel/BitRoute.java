@@ -16,16 +16,20 @@ public class BitRoute {
 	Error
     }
 
-    public BitRoute (boolean encode,int records){
+    public BitRoute (boolean encode,byte[][][] compiledSymbols){
 	this.state = State.SegmentStart;
 	this.segmentCount =0;
 	this.recordSize =0;
 	if (encode){
-	    this.encodeTape = new byte[128];
+	    this.encodeTape = new byte[1024];
 	    this.symbols = new ArrayList<>();
+	    this.usedTapeSpace =0;
 	}else{
 	    this.decodeTape = new byte[128];
+	    int records = compiledSymbols.length;
+	    this.compiledSymbols = compiledSymbols;
 	    this.matchedRecordOffsets = new int[records];
+	    this.matchedRecordIndices = new int[records];
 	    for(int i =0; i < records;i++){
 		this.matchedRecordOffsets[i] = -1;
 	    }
@@ -34,6 +38,7 @@ public class BitRoute {
 	
     }
     private State state;
+    private int recordsCount;
     private byte segmentCount;
     private int nextFreeOffset;
     private long[]  mask;
@@ -45,8 +50,15 @@ public class BitRoute {
     private int recordHeaderEnd = 12;
     private int[] matchedRecordOffsets;
     private byte[][][] compiledSymbols;
+    private int[] matchedRecordIndices;
+    private int usedTapeSpace;
     public byte[] getEncodeTape() {
-	return encodeTape;
+	var copy = new byte[this.usedTapeSpace];
+	for (int i = 0; i < this.usedTapeSpace; i++){
+	    copy[i] = encodeTape[i];
+	}
+    
+	return copy;
     }
     private ArrayList<ArrayList<ArrayList<Byte>>> symbols;
     public int getNextFreeOffset(){
@@ -58,16 +70,25 @@ public class BitRoute {
     public ArrayList<ArrayList<ArrayList<Byte>>> getSymbolsArrayList(){
 	return this.symbols;
     }
+    public byte[][][] getCompiledSymbosl(){
+	this.compileSymbols();
+	return this.compiledSymbols;
+    }
+    public int[] getMatchedRecordIndices(){
+	return this.matchedRecordIndices;
+    }
     public void decode(byte[] url, byte[] compiledTape){
+	this.nextFreeOffset =0;
 	code( url, decodeTape);
 	int decode_segment_count = this.decodeTape[2];
 
 	int currentEncodedRecordIndex =0;
 	var nextRecordOffset = 0;
 	var moreRecords = true;
-	while (nextRecordOffset < compiledTape.length  && moreRecords) {
+	int matchedCount = 0;
+       	while (nextRecordOffset < compiledTape.length  && moreRecords) {
 	    boolean bingo = true;
-	   
+
 	    //	    int rs = readRecordSize(compiledTape[nextRecordOffset], compiledTape[nextRecordOffset + 1]);
 	    int rs = (int) compiledTape[nextRecordOffset + 1];
 	    if(rs > 0){
@@ -105,13 +126,21 @@ public class BitRoute {
 	    }else{
 		moreRecords = false;
 	    }
-	    currentEncodedRecordIndex += 1;   
+
+	    if(bingo){
+		this.matchedRecordIndices[matchedCount++] = currentEncodedRecordIndex;
+	    }else{
+		this.matchedRecordIndices[matchedCount++] = -1;
+	    }
+	    currentEncodedRecordIndex += 1;
 	}
     }
 
     public void encode(byte[] url){
 	code(url, encodeTape);
 	System.out.println("");
+	encodeSymbols(url);
+	
     }
     private  void code(byte[] url, byte[] tape) {
 	
@@ -244,10 +273,12 @@ public class BitRoute {
 	    
 	}
 	short recordSize  = (short) (recordHeaderEnd + segmentCount * 5);
-	//System.out.printf("record size = %d\n", recordSize);
+
 	tape[nextFreeOffset] = (byte) (recordSize >> 8);
 	tape[nextFreeOffset + 1] = (byte) recordSize;
 	nextFreeOffset += recordSize;
+	this.usedTapeSpace  += recordSize;
+	System.out.printf("record size = %d, usedSpace = %d\n", recordSize,this.usedTapeSpace);
 	this.state = State.SegmentStart;
 	
 	
@@ -285,7 +316,8 @@ public class BitRoute {
 	}
 	return result;
     }
-    public void compileSymbols(){
+    private void compileSymbols(){
+
 	this.compiledSymbols = new byte[symbols.size()][][];
 	int routeIndex =0;
 	for (ArrayList<ArrayList<Byte>> route : symbols){
@@ -300,9 +332,10 @@ public class BitRoute {
 	    }
 	    routeIndex += 1;
 	}
+	this.matchedRecordIndices = new int[this.compiledSymbols.length];
 	                          
     }
-    public void encodeSymbols(byte[] url, int routeIndex){
+    public void encodeSymbols(byte[] url){
 	ArrayList<ArrayList<Byte>> symbolsByteArray = new ArrayList<>();
 	var skip = false; 
 	ArrayList<Byte> temp= null;
